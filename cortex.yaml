@@ -1,0 +1,10 @@
+title: Oauth2
+description: Automatically generated package.json, please edit manually
+x-cortex-git:
+  github:
+    repository: //oauth2
+x-cortex-owners:
+  - type: group
+    name: JupiterOne/sre
+x-cortex-service-groups: tier-4
+x-cortex-tag: oauth2
