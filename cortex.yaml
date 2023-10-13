@@ -14,7 +14,7 @@ info:
   description: Automatically generated package.json, please edit manually
   x-cortex-git:
     github:
-      repository: //oauth2
+      repository: JupiterOne/helm-charts
   x-cortex-owners:
     - type: group
       name: JupiterOne/sre
