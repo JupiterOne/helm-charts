@@ -4,7 +4,7 @@
 image:
   repository: jupiterone/graph-kubernetes
   pullPolicy: IfNotPresent
-  tag: "0.9.2"
+  tag: "2.0.0"
 
 imagePullSecrets: []
 
@@ -103,7 +103,8 @@ serviceAccount:
   # Annotations to add to the service account
   annotations: {}
 
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
