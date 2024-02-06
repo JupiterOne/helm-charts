@@ -18,6 +18,7 @@ rules:
       - secrets
     verbs:
       - list
+      - watch
   - apiGroups:
     - apps
     resources:
