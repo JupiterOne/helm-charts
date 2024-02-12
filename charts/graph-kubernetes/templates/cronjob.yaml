@@ -108,8 +108,9 @@ spec:
       template:
         spec:
           {{- with .Values.podAnnotations }}
-          annotations:
-            {{- toYaml . | nindent 12 }}
+          metadata:
+            annotations:
+              {{- toYaml . | nindent 14 }}
           {{- end }}
           {{- with .Values.imagePullSecrets }}
           imagePullSecrets:
