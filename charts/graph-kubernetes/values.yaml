@@ -48,6 +48,11 @@ resources:
 ######### Scheduling ###########
 ################################
 
+### Job Annotations
+## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+jobAnnotations: {}
+
 ### Pod Annotations
 ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
