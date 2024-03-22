@@ -3,4 +3,4 @@ name: graph-kubernetes
 description: Converts K8s resources into a graph model for ingestion into JupiterOne.
 type: application
 version: 2.0.1
-appVersion: "2.0.0"
+appVersion: "2.1.1"
