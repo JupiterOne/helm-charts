@@ -4,7 +4,7 @@
 image:
   repository: jupiterone/graph-kubernetes
   pullPolicy: IfNotPresent
-  tag: "2.2.0"
+  tag: "2.2.1"
 
 imagePullSecrets: []
 
