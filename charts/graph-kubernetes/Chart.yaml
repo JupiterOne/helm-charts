@@ -4,3 +4,4 @@ description: Converts K8s resources into a graph model for ingestion into Jupite
 type: application
 version: 2.3.1
 appVersion: "2.3.1"
+
