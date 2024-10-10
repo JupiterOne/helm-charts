@@ -134,8 +134,7 @@ spec:
             - name: {{ .Chart.Name }}
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-              command: ['/kubexit/kubexit', 'yarn']
-              args: ['execute']
+              command: ['/kubexit/kubexit', './script/run.sh']
               env:
                 - name: KUBEXIT_NAME
                   value: graph-kubernetes
