@@ -119,3 +119,21 @@ securityContext:
 
 # Force namespace of namespaced resources
 forceNamespace: null
+
+####################
+### Dependencies ###
+####################
+kubexit:
+  repository: cortexlabs/kubexit
+  tag: 0.40.0
+  resources: {}
+
+otelCollector:
+  repository: otel/opentelemetry-collector-contrib
+  tag: 0.58.0
+  resources: {}
+
+fluentBit:
+  repository: fluent/fluent-bit
+  tag: 1.8
+  resources: {}
