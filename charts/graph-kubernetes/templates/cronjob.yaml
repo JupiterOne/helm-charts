@@ -124,9 +124,11 @@ spec:
           {{ end }}
           initContainers:
             - name: kubexit
-              image: cortexlabs/kubexit:0.40.0
+              image: "{{ .Values.kubexit.repository }}:{{ .Values.kubexit.tag }}"
               command: ['cp']
               args: ['/bin/kubexit', '/kubexit/kubexit']
+              resources:
+                 {{- toYaml .Values.kubexit.resources | nindent 16 }}
               volumeMounts:
                 - mountPath: /kubexit
                   name: kubexit
@@ -181,7 +183,7 @@ spec:
                 - mountPath: /kubexit
                   name: kubexit
             - name: otel-collector
-              image: otel/opentelemetry-collector-contrib:0.58.0
+              image: "{{ .Values.otelCollector.repository }}:{{ .Values.otelCollector.tag }}"
               imagePullPolicy: IfNotPresent
               command: ['/kubexit/kubexit', '/otelcol-contrib']
               args: ['--config=/conf/otel-agent-config.yaml']
@@ -202,6 +204,8 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
+              resources:
+                {{- toYaml .Values.otelCollector.resources | nindent 16 }}
               volumeMounts:
                 - name: otel-agent-config-vol
                   mountPath: /conf
@@ -210,7 +214,7 @@ spec:
                 - mountPath: /kubexit
                   name: kubexit
             - name: fluent-bit
-              image: fluent/fluent-bit:1.8
+              image: "{{ .Values.fluentBit.repository }}:{{ .Values.fluentBit.tag }}"
               imagePullPolicy: IfNotPresent
               command: ['/kubexit/kubexit', '/fluent-bit/bin/fluent-bit']
               args: ['--config=/fluent-bit/etc/fluent-bit.conf']
@@ -233,6 +237,8 @@ spec:
                   value: otel-collector       
                 - name: KUBEXIT_DEATH_DEPS
                   value: graph-kubernetes
+              resources:
+                {{- toYaml .Values.fluentBit.resources | nindent 16 }}
               volumeMounts:
                 - name: log-storage
                   mountPath: /mnt/log/
