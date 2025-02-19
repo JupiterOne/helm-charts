@@ -118,8 +118,7 @@ serviceAccount:
   # Annotations to add to the service account
   annotations: {}
 
-securityContext:
-  {}
+securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -127,8 +126,7 @@ securityContext:
   # runAsNonRoot: true
   # runAsUser: 1000
 
-containerSecurityContext:
-  {}
+containerSecurityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
