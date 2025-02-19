@@ -130,7 +130,7 @@ spec:
           {{- if .Values.securityContext }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          {{ end }}
+          {{- end }}
           initContainers:
             - name: kubexit
               image: "{{ .Values.kubexit.repository }}:{{ .Values.kubexit.tag }}"
