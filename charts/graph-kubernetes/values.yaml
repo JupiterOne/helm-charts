@@ -58,6 +58,16 @@ jobAnnotations: {}
 ##
 podAnnotations: {}
 
+## Job labels
+## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+jobLabels: {}
+
+## Pod labels
+## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+podLabels: {}
+
 ## Node labels
 ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
 ##
@@ -108,8 +118,15 @@ serviceAccount:
   # Annotations to add to the service account
   annotations: {}
 
-securityContext:
-  {}
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+containerSecurityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
