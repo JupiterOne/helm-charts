@@ -10,6 +10,8 @@ imagePullSecrets: []
 
 cronjob:
   schedule: "*/30 * * * *"
+  backoffLimit: 5
+  backoffDelay: 300  # 5 minutes in seconds
 
 secrets:
   jupiteroneAccountId:
@@ -31,8 +33,7 @@ settings:
 # namespaces:
 #   - yournamespace
 
-resources:
-  {}
+resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -136,21 +137,3 @@ containerSecurityContext: {}
 
 # Force namespace of namespaced resources
 forceNamespace: null
-
-####################
-### Dependencies ###
-####################
-kubexit:
-  repository: cortexlabs/kubexit
-  tag: 0.40.0
-  resources: {}
-
-otelCollector:
-  repository: otel/opentelemetry-collector-contrib
-  tag: 0.58.0
-  resources: {}
-
-fluentBit:
-  repository: fluent/fluent-bit
-  tag: 1.8
-  resources: {}
