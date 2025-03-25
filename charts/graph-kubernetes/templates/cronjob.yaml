@@ -66,29 +66,25 @@ data:
         check_interval: 5s
 
     exporters:
-      logging:
-        loglevel: debug
+      debug:
+        verbosity: detailed
         sampling_initial: 5
         sampling_thereafter: 200
-
-    extensions:
-      memory_ballast:
-        size_mib: 165
 
     service:
       pipelines:
         logs:
           receivers: [fluentforward]
           processors: [memory_limiter, batch]
-          exporters: [logging]
+          exporters: [debug]
         metrics:
           receivers: [hostmetrics]
           processors: [memory_limiter, batch]
-          exporters: [logging]
+          exporters: [debug]
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [logging]
+          exporters: [debug]
 ---
 apiVersion: {{ template "cronjob.apiVersion" . }}
 kind: CronJob
