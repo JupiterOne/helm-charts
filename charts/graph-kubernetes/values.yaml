@@ -4,7 +4,7 @@
 image:
   repository: ghcr.io/jupiterone/graph-kubernetes
   pullPolicy: IfNotPresent
-  tag: "2.4.19"
+  tag: "2.4.20"
 
 imagePullSecrets: []
 
