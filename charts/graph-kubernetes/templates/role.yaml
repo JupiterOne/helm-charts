@@ -54,5 +54,13 @@ rules:
       - rolebindings
     verbs:
       - list
+  - apiGroups: 
+    - certificates.k8s.io
+    resources: 
+      - certificatesigningrequests
+    verbs: 
+      - get
+      - list
+      - watch
 {{- end }}
 {{- end }}
