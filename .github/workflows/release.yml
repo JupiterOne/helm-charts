@@ -1,7 +1,6 @@
 name: Release Chart
 
-on:
-  pull_request: # TODO testing only 
+on:  
   push:
     branches:
       - main
