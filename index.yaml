@@ -454,6 +454,16 @@ entries:
   kubernetes-operator:
   - apiVersion: v2
     appVersion: v0.0.10
+    created: "2025-07-29T17:59:21.387488685Z"
+    description: A Helm chart to distribute the project kubernetes-operator
+    digest: 93235cba549c41fe1e04761fdde696f881bb0a426b78c9a97fcfe3680213e9e1
+    name: kubernetes-operator
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/kubernetes-operator-1.0.0/kubernetes-operator-1.0.0.tgz
+    version: 1.0.0
+  - apiVersion: v2
+    appVersion: v0.0.10
     created: "2025-07-28T17:07:42.969868015Z"
     description: A Helm chart to distribute the project kubernetes-operator
     digest: c9dbfa063453f604ec88d50ef5376cf2dbb1bea7a9c3fff9d379893a663e92d1
