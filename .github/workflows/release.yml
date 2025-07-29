@@ -1,6 +1,6 @@
 name: Release Chart
 
-on:
+on:  
   push:
     branches:
       - main
