@@ -40,14 +40,14 @@ rules:
   - ''
   resources:
   - secrets
-  verbs:  
+  verbs:
   - list
   - watch
 - apiGroups:
   - 'batch'
   resources:
-  - jobs    
-  verbs:  
+  - jobs
+  verbs:
   - list
-  - watch  
+  - watch
 {{- end -}}
