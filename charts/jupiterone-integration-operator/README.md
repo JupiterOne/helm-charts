@@ -32,7 +32,7 @@ kubectl create namespace jupiterone
 Replace `<collectorID>`, `<accountID>`, and `<authToken>` with your JupiterOne credentials.
 
 ```console
-helm install kubernetes-operator jupiterone/jupiterone-integration-operator \
+helm install integration-operator jupiterone/jupiterone-integration-operator \
   --namespace jupiterone \
   --set runner.create=true \
   --set runner.collectorID=<collectorID> \
@@ -43,7 +43,7 @@ helm install kubernetes-operator jupiterone/jupiterone-integration-operator \
 #### Example
 
 ```console
-helm install kubernetes-operator jupiterone/jupiterone-integration-operator \
+helm install integration-operator jupiterone/jupiterone-integration-operator \
   --namespace jupiterone \
   --set runner.create=true \
   --set runner.collectorID=abcd1234 \
@@ -100,7 +100,7 @@ To upgrade to a newer version:
 
 ```console
 helm repo update
-helm upgrade kubernetes-operator jupiterone/jupiterone-integration-operator --namespace jupiterone
+helm upgrade integration-operator jupiterone/jupiterone-integration-operator --namespace jupiterone
 ```
 
 ## Uninstalling
@@ -108,7 +108,7 @@ helm upgrade kubernetes-operator jupiterone/jupiterone-integration-operator --na
 To remove the operator and all related resources:
 
 ```console
-helm uninstall kubernetes-operator --namespace jupiterone
+helm uninstall integration-operator --namespace jupiterone
 kubectl delete namespace jupiterone
 ```
 
