@@ -39,7 +39,7 @@ rules:
 - apiGroups:
   - ''
   resources:
-  - secrets    
+  - secrets
   verbs:  
   - list
   - watch
