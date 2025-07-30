@@ -3,7 +3,7 @@ controllerManager:
   replicas: 1
   container:
     image:
-      repository: ghcr.io/jupiterone/kubernetes-operator
+      repository: ghcr.io/jupiterone/jupiterone-integration-operator
     args:
       - "--leader-elect"
       - "--metrics-bind-address=:8443"
@@ -37,7 +37,7 @@ controllerManager:
     seccompProfile:
       type: RuntimeDefault
   terminationGracePeriodSeconds: 10
-  serviceAccountName: kubernetes-operator-controller-manager
+  serviceAccountName: jupiterone-integration-operator-controller-manager
 
 # [RBAC]: To enable RBAC (Permissions) configurations
 rbac:

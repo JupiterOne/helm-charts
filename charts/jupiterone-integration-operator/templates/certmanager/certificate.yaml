@@ -25,9 +25,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   dnsNames:
-    - kubernetes-operator.{{ .Release.Namespace }}.svc
-    - kubernetes-operator.{{ .Release.Namespace }}.svc.cluster.local
-    - kubernetes-operator-metrics-service.{{ .Release.Namespace }}.svc
+    - jupiterone-integration-operator.{{ .Release.Namespace }}.svc
+    - jupiterone-integration-operator.{{ .Release.Namespace }}.svc.cluster.local
+    - jupiterone-integration-operator-metrics-service.{{ .Release.Namespace }}.svc
   issuerRef:
     kind: Issuer
     name: selfsigned-issuer

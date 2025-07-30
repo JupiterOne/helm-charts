@@ -5,10 +5,10 @@
   {{- else if .Values.nameOverride }}
     {{ .Values.nameOverride | trunc 63 | trimSuffix "-" }}
   {{- else }}
-    kubernetes-operator
+    jupiterone-integration-operator
   {{- end }}
 {{- else }}
-  kubernetes-operator
+  jupiterone-integration-operator
 {{- end }}
 {{- end }}
 

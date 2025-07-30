@@ -1,5 +1,5 @@
 {{- if .Values.rbac.enable }}
-# This rule is not used by the project kubernetes-operator itself.
+# This rule is not used by the project jupiterone-integration-operator itself.
 # It is provided to allow the cluster admin to help manage permissions for users.
 #
 # Grants full permissions ('*') over integrations.jupiterone.io.
@@ -11,18 +11,18 @@ kind: ClusterRole
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  name: integrationinstancejob-admin-role
+  name: integrationrunner-admin-role
 rules:
 - apiGroups:
   - integrations.jupiterone.io
   resources:
-  - integrationinstancejobs
+  - integrationrunners
   verbs:
   - '*'
 - apiGroups:
   - integrations.jupiterone.io
   resources:
-  - integrationinstancejobs/status
+  - integrationrunners/status
   verbs:
   - get
 {{- end -}}

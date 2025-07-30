@@ -1,26 +1,24 @@
 {{- if .Values.rbac.enable }}
-# This rule is not used by the project kubernetes-operator itself.
+# This rule is not used by the project jupiterone-integration-operator itself.
 # It is provided to allow the cluster admin to help manage permissions for users.
 #
-# Grants read-only access to integrations.jupiterone.io resources.
-# This role is intended for users who need visibility into these resources
-# without permissions to modify them. It is ideal for monitoring purposes and limited-access viewing.
+# Grants full permissions ('*') over integrations.jupiterone.io.
+# This role is intended for users authorized to modify roles and bindings within the cluster,
+# enabling them to delegate specific permissions to other users or groups as needed.
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  name: integrationinstancejob-viewer-role
+  name: integrationinstancejob-admin-role
 rules:
 - apiGroups:
   - integrations.jupiterone.io
   resources:
   - integrationinstancejobs
   verbs:
-  - get
-  - list
-  - watch
+  - '*'
 - apiGroups:
   - integrations.jupiterone.io
   resources:

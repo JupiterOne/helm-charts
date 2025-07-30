@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
   namespace: {{ .Release.Namespace }}
-  name: kubernetes-operator-leader-election-role
+  name: jupiterone-integration-operator-leader-election-role
 rules:
 - apiGroups:
   - ""

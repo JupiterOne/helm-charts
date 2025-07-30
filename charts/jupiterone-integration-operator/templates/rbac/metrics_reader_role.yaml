@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  name: kubernetes-operator-metrics-reader
+  name: jupiterone-integration-operator-metrics-reader
 rules:
 - nonResourceURLs:
   - "/metrics"
