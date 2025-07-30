@@ -39,8 +39,15 @@ rules:
 - apiGroups:
   - ''
   resources:
-  - secrets  
-  verbs:  
+  - secrets
+  verbs:
   - list
-  - watch 
+  - watch
+- apiGroups:
+  - 'batch'
+  resources:
+  - jobs
+  verbs:
+  - list
+  - watch
 {{- end -}}
