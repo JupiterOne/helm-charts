@@ -4,6 +4,7 @@ controllerManager:
   container:
     image:
       repository: ghcr.io/jupiterone/jupiterone-integration-operator
+      tag: "" # Use the appVersion from the chart unless overridden by command line
     args:
       - "--leader-elect"
       - "--metrics-bind-address=:8443"
@@ -73,7 +74,7 @@ integration:
 runner:
   # Specifies whether to create the runner resources
   create: false
-  # The name of the runner. 
+  # The name of the runner.
   name: operator-1
   # The namespace where the runner will be deployed
   namespace: jupiterone
@@ -81,7 +82,7 @@ runner:
   collectorID: <collector-id>
   # The JupiterOne account ID, found in the JupiterOne UI under Settings > Account Management
   accountID: <account-id>
-  # The auth token for the runner, 
+  # The auth token for the runner,
   authToken: <auth-token>
   # The interval in seconds for syncing data with JupiterOne
   syncIntervalSeconds: 30
