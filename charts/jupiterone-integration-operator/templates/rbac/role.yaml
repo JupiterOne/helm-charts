@@ -9,9 +9,38 @@ metadata:
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
-  - ""
+  - integrations.jupiterone.io
   resources:
-  - secrets  
+  - integrationinstancejobs
+  - integrationrunners
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - integrations.jupiterone.io
+  resources:
+  - integrationinstancejobs/finalizers
+  - integrationrunners/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - integrations.jupiterone.io
+  resources:
+  - integrationinstancejobs/status
+  - integrationrunners/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ''
+  resources:
+  - secrets
   verbs:
   - create
   - delete
@@ -23,8 +52,8 @@ rules:
 - apiGroups:
   - 'batch'
   resources:
-  - jobs    
-  verbs:  
+  - jobs
+  verbs:
   - create
   - delete
   - get
