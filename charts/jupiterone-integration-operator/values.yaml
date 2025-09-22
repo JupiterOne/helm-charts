@@ -69,6 +69,7 @@ integration:
   # Service account name for the cluster role binding
   serviceAccountName: jupiterone
   # Service account namespace for the cluster role binding
+  # NOTE: We don't support changing this at this time
   serviceAccountNamespace: jupiterone
 
 runner:
