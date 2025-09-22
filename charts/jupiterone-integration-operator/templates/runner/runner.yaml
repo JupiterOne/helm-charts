@@ -8,6 +8,6 @@ spec:
   accountId: {{ .Values.runner.accountID }}
   collectorId: {{ .Values.runner.collectorID }}
   secretName: {{ .Values.runner.name }}-secret
-  syncIntervalSeconds: {{ .Values.runner.syncIntervalSeconds }}  
+  syncIntervalSeconds: {{ .Values.runner.syncIntervalSeconds }}
   jupiterOneApiUrl: {{ .Values.runner.jupiterOneApiUrl }}
 {{- end }}
