@@ -11,6 +11,6 @@ subjects:
     namespace: {{ .Values.integration.serviceAccountNamespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "chart.name" . }}-integration-cluster-readonly
+  name: {{ .Values.integration.serviceAccountName }}-integration-cluster-readonly
   apiGroup: rbac.authorization.k8s.io
-{{- end }} 
+{{- end }}
