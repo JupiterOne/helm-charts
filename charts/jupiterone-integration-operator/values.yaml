@@ -63,6 +63,7 @@ networkPolicy:
   enable: false
 
 # [INTEGRATION]: Integration RBAC configuration
+# TODO: this will move to the integration chart eventually
 integration:
   # Specifies whether to create integration RBAC resources
   create: true
@@ -71,21 +72,3 @@ integration:
   # Service account namespace for the cluster role binding
   # NOTE: We don't support changing this at this time
   serviceAccountNamespace: jupiterone
-
-runner:
-  # Specifies whether to create the runner resources
-  create: false
-  # The name of the runner.
-  name: operator-1
-  # The namespace where the runner will be deployed
-  namespace: jupiterone
-  # The JupiterOne collector ID, found when you create a new collector in the UI
-  collectorID: <collector-id>
-  # The JupiterOne account ID, found in the JupiterOne UI under Settings > Account Management
-  accountID: <account-id>
-  # The auth token for the runner,
-  authToken: <auth-token>
-  # The interval in seconds for syncing data with JupiterOne
-  syncIntervalSeconds: 30
-  # The URL for the JupiterOne API, defaults to 'https://api.us.jupiterone.io'
-  jupiterOneApiUrl: https://api.us.jupiterone.io

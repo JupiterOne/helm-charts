@@ -1,14 +1,13 @@
-# JupiterOne Integration Operator
+# JupiterOne Integration Runner
 
-This operator installs in a Kubernetes environment and manages several Custom Resource Definitions (CRDs) for managing JupiterOne integrations.
-
-The operator installs an `IntegrationRunner` type which manages a connection to JupiterOne's API. The API then delegates integrations that need to run on your cluster.
+This chart installs a single instance of the Runner using a Custom Resource.
 
 ## Prerequisites
 
 - Kubernetes 1.16+
 - Helm 3+
 - Access to a JupiterOne account with API credentials
+- JupiterOne Integration Operator helm chart installed
 
 ## Installation
 
@@ -27,18 +26,34 @@ All resources are created in the namespace `jupiterone`. If it does not exist, c
 kubectl create namespace jupiterone
 ```
 
-### 3. Install the Operator
+### 3. Install the Runner
+
+Replace `<collectorID>`, `<accountID>`, and `<authToken>` with your JupiterOne credentials.
 
 ```console
-helm install integration-operator jupiterone/jupiterone-integration-operator --namespace jupiterone
+helm install integration-runner jupiterone/jupiterone-integration-runner \
+  --namespace jupiterone \
+  --set collectorID=<collectorID> \
+  --set accountID=<accountID> \
+  --set authToken=<authToken>
+```
+
+#### Example
+
+```console
+helm install integration-runner jupiterone/jupiterone-integration-runner \
+  --namespace jupiterone \
+  --set collectorID=abcd1234 \
+  --set accountID=efgh5678 \
+  --set authToken=your-token-here
 ```
 
 ### 4. Verify Installation
 
-Check that the operator is running:
+Check that the runner is installed
 
 ```console
-kubectl get pods -n jupiterone
+kubectl get integrationrunner -n jupiterone
 ```
 
 ## Configuration
