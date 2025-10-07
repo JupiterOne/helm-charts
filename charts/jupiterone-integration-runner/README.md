@@ -28,14 +28,13 @@ kubectl create namespace jupiterone
 
 ### 3. Install the Runner
 
-Replace `<collectorID>`, `<accountID>`, and `<authToken>` with your JupiterOne credentials.
+Replace `<accountID>`, and `<apiToken>` with the correct values
 
 ```console
-helm install integration-runner jupiterone/jupiterone-integration-runner \
+helm install operator-1 jupiterone/jupiterone-integration-runner \
   --namespace jupiterone \
-  --set collectorID=<collectorID> \
   --set accountID=<accountID> \
-  --set authToken=<authToken>
+  --set apiToken=<apiToken>
 ```
 
 #### Example

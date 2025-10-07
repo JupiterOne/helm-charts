@@ -5,7 +5,6 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   accountId: {{ .Values.accountID }}
-  collectorId: {{ .Values.collectorID }}
   secretName: {{ .Values.secretName }}
   syncIntervalSeconds: {{ .Values.syncIntervalSeconds }}
   jupiterOneApiUrl: {{ .Values.jupiterOneApiUrl }}
