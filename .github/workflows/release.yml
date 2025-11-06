@@ -1,9 +1,9 @@
 name: Release Chart
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
 # TODO testing only - do not merge
 on:
