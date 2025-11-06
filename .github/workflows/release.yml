@@ -1,13 +1,9 @@
 name: Release Chart
 
-# on:
-#   push:
-#     branches:
-#       - main
-
-# TODO testing only - do not merge
 on:
-  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   release:
