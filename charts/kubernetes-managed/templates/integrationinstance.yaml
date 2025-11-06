@@ -1,0 +1,14 @@
+apiVersion: integrations.jupiterone.io/v1
+kind: IntegrationInstance
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  collectorName: {{ .Values.collectorName }}
+  integrationDefinitionName: kubernetes-managed
+  config:
+    loadKubernetesConfigFromDefault: 'true'
+    {{- if .Values.ingestSpecificNamespace }}
+    ingestSpecificNamespace: 'true'
+    namespace: {{ .Values.ingestSpecificNamespace | quote }}
+    {{- end }}

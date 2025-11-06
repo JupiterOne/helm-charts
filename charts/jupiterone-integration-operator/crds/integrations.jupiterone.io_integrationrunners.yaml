@@ -13,7 +13,24 @@ spec:
     singular: integrationrunner
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - description: State of the runner
+      jsonPath: .status.state
+      name: State
+      type: string
+    - description: Detailed state message
+      jsonPath: .status.stateDetail
+      name: Detail
+      type: string
+    - description: Registration status of the runner
+      jsonPath: .status.registration
+      name: Registration
+      type: string
+    - description: Time since creation
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
         description: IntegrationRunner is the Schema for the integrationrunners API.
@@ -46,14 +63,23 @@ spec:
                 description: CollectorID is the ID of the collector that this integration
                   runner is associated with.
                 type: string
-              jupiterOneApiUrl:
+              collectorPoolId:
+                description: CollectorPoolID is the ID of the pool that the collector
+                  belongs to.
+                type: string
+              jupiterOneEnvironment:
                 description: |-
-                  JupiterOneApiURL is the URL of the JupiterOne API that the integration runner will connect to.
-                  This defaults to https://api.us.jupiterone.io if not specified.
+                  JupiterOneEnvironment is the environment of the JupiterOne API that the integration runner will connect to.
+                  This defaults to `us` if not specified.
+                type: string
+              secretAPITokenName:
+                description: SecretAPITokenName is the name of the Kubernetes secret
+                  that contains the user's API token for API access.
                 type: string
               secretName:
-                description: SecretName is the name of the Kubernetes secret that
-                  contains the credentials for the integration runner.
+                description: |-
+                  SecretName is the name of the Kubernetes secret that contains the credentials for the integration runner.
+                  This includes the registration token and the currently rotated token. The values in this secret change over time.
                 type: string
               syncIntervalSeconds:
                 description: SyncIntervalSeconds is the interval in seconds at which
@@ -69,7 +95,11 @@ spec:
               lastSyncTime:
                 format: date-time
                 type: string
-              registrationStatus:
+              registration:
+                type: string
+              state:
+                type: string
+              stateDetail:
                 type: string
             type: object
         type: object
