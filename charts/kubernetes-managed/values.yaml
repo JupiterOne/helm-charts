@@ -1,0 +1,5 @@
+# The name of the collector (a.k.a IntegrationRunner) in the same namespace
+collectorName: runner
+
+# Uncomment and specify a namespace to ingest instead of all namespaces
+# ingestSpecificNamespace: default

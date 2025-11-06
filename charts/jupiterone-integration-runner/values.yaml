@@ -1,12 +1,6 @@
-# The name of the runner/collector
-name: operator-1
-
-# The namespace where the runner/collector will be deployed
-namespace: jupiterone
-
 # The name of the secret that holds the API token.
 # The key in the secret must be 'token'
-secretName: operator-1-secret
+secretAPITokenName: j1token
 
 # Set this to false if you are using an external secret
 createSecret: true
@@ -21,5 +15,5 @@ accountID: <account-id>
 # The interval in seconds for syncing data with JupiterOne
 syncIntervalSeconds: 30
 
-# The URL for the JupiterOne API, defaults to 'https://api.us.jupiterone.io'
-jupiterOneApiUrl: https://api.us.jupiterone.io
+# The environment for JupiterOne API
+jupiterOneEnvironment: us

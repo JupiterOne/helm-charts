@@ -1,10 +1,11 @@
 apiVersion: integrations.jupiterone.io/v1
 kind: IntegrationRunner
 metadata:
-  name: {{ .Values.name }}
-  namespace: {{ .Values.namespace }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
 spec:
   accountId: {{ .Values.accountID }}
-  secretName: {{ .Values.secretName }}
+  secretName: {{ .Release.Name }}-j1internal
+  secretAPITokenName: {{ .Values.secretAPITokenName }}
   syncIntervalSeconds: {{ .Values.syncIntervalSeconds }}
-  jupiterOneApiUrl: {{ .Values.jupiterOneApiUrl }}
+  jupiterOneEnvironment: {{ .Values.jupiterOneEnvironment }}

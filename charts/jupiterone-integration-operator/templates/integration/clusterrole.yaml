@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  name: {{ .Values.integration.serviceAccountName }}-integration-cluster-readonly
+  name: {{ .Values.integration.serviceAccountName }}
 rules:
   - apiGroups:
       - ''
@@ -105,4 +105,4 @@ rules:
       - get
       - list
       - watch
-{{- end }} 
+{{- end }}

@@ -13,6 +13,7 @@ rules:
   resources:
   - integrationinstancejobs
   - integrationrunners
+  - integrationinstances
   verbs:
   - create
   - delete
@@ -26,6 +27,7 @@ rules:
   resources:
   - integrationinstancejobs/finalizers
   - integrationrunners/finalizers
+  - integrationinstances/finalizers
   verbs:
   - update
 - apiGroups:
@@ -33,6 +35,7 @@ rules:
   resources:
   - integrationinstancejobs/status
   - integrationrunners/status
+  - integrationinstances/status
   verbs:
   - get
   - patch

@@ -62,8 +62,7 @@ certmanager:
 networkPolicy:
   enable: false
 
-# [INTEGRATION]: Integration RBAC configuration
-# TODO: this will move to the integration chart eventually
+# [INTEGRATION]: Kubernetes Managed Integration RBAC configuration
 integration:
   # Specifies whether to create integration RBAC resources
   create: true

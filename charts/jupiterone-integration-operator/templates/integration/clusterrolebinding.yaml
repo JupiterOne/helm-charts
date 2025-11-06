@@ -4,13 +4,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-  name: {{ .Values.integration.serviceAccountName }}-integration-cluster
+  name: {{ .Values.integration.serviceAccountName }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.integration.serviceAccountName }}
     namespace: {{ .Values.integration.serviceAccountNamespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "chart.name" . }}-integration-cluster-readonly
+  name: {{ .Values.integration.serviceAccountName }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }} 
+{{- end }}
