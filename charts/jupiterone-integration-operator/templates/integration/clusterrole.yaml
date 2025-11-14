@@ -68,6 +68,7 @@ rules:
   - apiGroups:
       - networking.k8s.io
     resources:
+      - ingresses
       - networkpolicies
     verbs:
       - get
