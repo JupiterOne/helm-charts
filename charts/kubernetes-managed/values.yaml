@@ -1,8 +1,16 @@
 # The name of the collector (a.k.a IntegrationRunner) in the same namespace
 collectorName: runner
 
-# Uncomment and specify a namespace to ingest instead of all namespaces
-# ingestSpecificNamespace: default
+# Load Kubernetes configuration from the default location
+loadKubernetesConfigFromDefault: true
+
+# Namespaces to ingest instead of all namespaces
+# includeNamespaces:
+#   - default
+#   - jupiterone
+
+# Namespaces to exclude from ingestion
+# excludeNamespaces: []
 
 # Polling interval defines how often the integration should run. Options are:
 # DISABLED

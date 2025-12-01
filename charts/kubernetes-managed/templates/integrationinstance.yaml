@@ -18,10 +18,12 @@ spec:
   resourceGroupID: {{ .Values.resourceGroupID | quote }}
   {{- end }}
   config:
-    loadKubernetesConfigFromDefault: 'true'
-    {{- if .Values.ingestSpecificNamespace }}
-    ingestSpecificNamespace: 'true'
-    namespace: {{ .Values.ingestSpecificNamespace | quote }}
+    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault | quote }}
+    {{- if .Values.includeNamespaces }}
+    includeNamespaces: {{ .Values.includeNamespaces | toJson | quote }}
+    {{- end }}
+    {{- if .Values.excludeNamespaces }}
+    excludeNamespaces: {{ .Values.excludeNamespaces | toJson | quote }}
     {{- end }}
     {{- if .Values.crdMappingConfig }}
     crdMappingConfig: {{ .Values.crdMappingConfig | quote }}
