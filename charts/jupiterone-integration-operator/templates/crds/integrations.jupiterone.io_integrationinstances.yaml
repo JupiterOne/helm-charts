@@ -67,6 +67,25 @@ spec:
                 description: IntegrationInstanceID is the ID of the created integration
                   instance in JupiterOne
                 type: string
+              pollingInterval:
+                description: PollingInterval defines how often the integration should
+                  poll for data
+                type: string
+              pollingIntervalCron:
+                description: PollingIntervalCron defines a cron schedule for polling
+                  the integration
+                properties:
+                  dayOfWeek:
+                    type: integer
+                  hour:
+                    type: integer
+                required:
+                - dayOfWeek
+                - hour
+                type: object
+              resourceGroupID:
+                description: ResourceGroupID is the ID of the resource group in JupiterOne
+                type: string
             type: object
           status:
             description: IntegrationInstanceStatus defines the observed state of IntegrationInstance.
