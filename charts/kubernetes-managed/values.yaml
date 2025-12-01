@@ -3,3 +3,22 @@ collectorName: runner
 
 # Uncomment and specify a namespace to ingest instead of all namespaces
 # ingestSpecificNamespace: default
+
+# Polling interval defines how often the integration should run. Options are:
+# DISABLED
+# THIRTY_MINUTES
+# ONE_HOUR
+# FOUR_HOURS
+# EIGHT_HOURS
+# TWELVE_HOURS
+# ONE_DAY
+# ONE_WEEK
+pollingInterval: "ONE_WEEK"
+
+# Polling interval cron schedule (instead of pollingInterval)
+# pollingIntervalCron:
+#   hour: 2          # Hour of the day (0-23)
+#   dayOfWeek: 0    # Day of the week (0-6,
+
+# Resource Group ID to associate with the integration instance
+# resourceGroupId: "your-resource-group-id"

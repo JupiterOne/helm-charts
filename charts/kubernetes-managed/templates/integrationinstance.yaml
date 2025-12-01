@@ -6,9 +6,21 @@ metadata:
 spec:
   collectorName: {{ .Values.collectorName }}
   integrationDefinitionName: kubernetes-managed
+  {{- if .Values.pollingInterval }}
+  pollingInterval: {{ .Values.pollingInterval | quote }}
+  {{- end }}
+  {{- if .Values.pollingIntervalCron }}
+  pollingIntervalCron:
+    hour: {{ .Values.pollingIntervalCron.hour }}
+    dayOfWeek: {{ .Values.pollingIntervalCron.dayOfWeek }}
+  {{- end }}
+  {{- if .Values.resourceGroupID }}
+  resourceGroupID: {{ .Values.resourceGroupID | quote }}
+  {{- end }}
   config:
     loadKubernetesConfigFromDefault: 'true'
     {{- if .Values.ingestSpecificNamespace }}
     ingestSpecificNamespace: 'true'
     namespace: {{ .Values.ingestSpecificNamespace | quote }}
     {{- end }}
+
