@@ -100,7 +100,7 @@ rules:
     verbs: 
       - list
   - apiGroups:
-    - certificates.k8s.io
+      - certificates.k8s.io
     resources:
       - certificatesigningrequests
     verbs:
