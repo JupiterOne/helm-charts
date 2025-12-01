@@ -23,4 +23,7 @@ spec:
     ingestSpecificNamespace: 'true'
     namespace: {{ .Values.ingestSpecificNamespace | quote }}
     {{- end }}
+    {{- if .Values.crdMappingConfig }}
+    crdMappingConfig: {{ .Values.crdMappingConfig | quote }}
+    {{- end }}
 
