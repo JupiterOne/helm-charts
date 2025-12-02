@@ -564,6 +564,16 @@ entries:
   jupiterone-integration-operator:
   - apiVersion: v2
     appVersion: v0.0.26
+    created: "2025-12-02T16:58:16.926092865Z"
+    description: A Helm chart for the JupiterOne Integration Operator
+    digest: 2cf0cd6600bca303cc58ee44aa0f114ac428c10966f7c9cdc381ad0cc080e4d5
+    name: jupiterone-integration-operator
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jupiterone-integration-operator-1.1.10/jupiterone-integration-operator-1.1.10.tgz
+    version: 1.1.10
+  - apiVersion: v2
+    appVersion: v0.0.26
     created: "2025-12-01T17:44:16.179778747Z"
     description: A Helm chart for the JupiterOne Integration Operator
     digest: d7cb143196b01242e83fc649d6def375958332612a0f552abddf3c503faffc86
@@ -746,6 +756,16 @@ entries:
   kubernetes-managed:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2025-12-02T16:58:17.544643424Z"
+    description: A Helm chart for the JupiterOne Kubernetes Managed Integration
+    digest: 8997fefdce7268ec14680bd63445a6599db7459214ee85e721947cd14d6531f9
+    name: kubernetes-managed
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/kubernetes-managed-1.0.3/kubernetes-managed-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2025-11-21T17:14:40.801463084Z"
     description: A Helm chart for the JupiterOne Kubernetes Managed Integration
     digest: e79e02c814fd00cefa38ecb3b836c21496c3d504c4b92fb70ec3053f2e24eb36
@@ -764,4 +784,4 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/kubernetes-managed-1.0.1/kubernetes-managed-1.0.1.tgz
     version: 1.0.1
-generated: "2025-12-01T17:44:16.180062788Z"
+generated: "2025-12-02T16:58:17.54488151Z"
