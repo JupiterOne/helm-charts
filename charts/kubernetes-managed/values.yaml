@@ -21,7 +21,8 @@ loadKubernetesConfigFromDefault: true
 # TWELVE_HOURS
 # ONE_DAY
 # ONE_WEEK
-pollingInterval: "ONE_WEEK"
+# NOTE: pollingInterval field must be supported by the IntegrationInstance CRD
+# pollingInterval: "ONE_WEEK"
 
 # Polling interval cron schedule (instead of pollingInterval)
 # pollingIntervalCron:
