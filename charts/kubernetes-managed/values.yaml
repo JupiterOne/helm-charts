@@ -2,7 +2,7 @@
 collectorName: runner
 
 # Load Kubernetes configuration from the default location
-loadKubernetesConfigFromDefault: true
+loadKubernetesConfigFromDefault: false
 
 # Namespaces to ingest instead of all namespaces
 # includeNamespaces:
