@@ -1,2 +1,6 @@
 # Chart dependencies
 /charts/*/charts
+
+# Sync temp files
+_operator_src/
+operator.tar.gz
