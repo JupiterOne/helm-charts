@@ -14,9 +14,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify GitHub CLI is available
-        run: gh version
-
       - name: Verify CRDs are in sync
         run: make verify-crds
         env:
