@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   collectorName: {{ .Values.collectorName }}
-  integrationDefinitionName: kubernetes-managed
+  integrationDefinitionName: vsphere
   {{- if .Values.pollingInterval }}
   pollingInterval: {{ .Values.pollingInterval | quote }}
   {{- end }}
@@ -18,16 +18,17 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
+    {{- if .Values.domain }}
+    domain: {{ .Values.domain }}
     {{- end }}
-    {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
+    {{- if .Values.login }}
+    login: {{ .Values.login }}
     {{- end }}
-    {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
+    {{- if .Values.usesNsx }}
+    usesNsx: {{ .Values.usesNsx }}
     {{- end }}
-    {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
+    {{- if .Values.disableTlsVerification }}
+    disableTlsVerification: {{ .Values.disableTlsVerification }}
     {{- end }}

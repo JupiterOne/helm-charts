@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   collectorName: {{ .Values.collectorName }}
-  integrationDefinitionName: kubernetes-managed
+  integrationDefinitionName: sonarqube
   {{- if .Values.pollingInterval }}
   pollingInterval: {{ .Values.pollingInterval | quote }}
   {{- end }}
@@ -18,16 +18,20 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
+    {{- if .Values.baseUrl }}
+    baseUrl: {{ .Values.baseUrl }}
     {{- end }}
-    {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
+    {{- if .Values.findingSeverities }}
+    findingSeverities: {{ .Values.findingSeverities }}
     {{- end }}
-    {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
+    {{- if .Values.findingStatus }}
+    findingStatus: {{ .Values.findingStatus }}
     {{- end }}
-    {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
+    {{- if .Values.findingTypes }}
+    findingTypes: {{ .Values.findingTypes }}
+    {{- end }}
+    {{- if .Values.findingsIngestSinceDays }}
+    findingsIngestSinceDays: {{ .Values.findingsIngestSinceDays }}
     {{- end }}

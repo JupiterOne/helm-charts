@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   collectorName: {{ .Values.collectorName }}
-  integrationDefinitionName: kubernetes-managed
+  integrationDefinitionName: sailpoint-iiq
   {{- if .Values.pollingInterval }}
   pollingInterval: {{ .Values.pollingInterval | quote }}
   {{- end }}
@@ -18,16 +18,5 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
-    {{- end }}
-    {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
-    {{- end }}
-    {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
-    {{- end }}
-    {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
-    {{- end }}
