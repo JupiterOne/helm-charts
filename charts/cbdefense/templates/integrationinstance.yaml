@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   collectorName: {{ .Values.collectorName }}
-  integrationDefinitionName: kubernetes-managed
+  integrationDefinitionName: cbdefense
   {{- if .Values.pollingInterval }}
   pollingInterval: {{ .Values.pollingInterval | quote }}
   {{- end }}
@@ -18,16 +18,14 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
+    {{- if .Values.site }}
+    site: {{ .Values.site }}
     {{- end }}
-    {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
+    {{- if .Values.orgKey }}
+    orgKey: {{ .Values.orgKey }}
     {{- end }}
-    {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
-    {{- end }}
-    {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
+    {{- if .Values.connectorId }}
+    connectorId: {{ .Values.connectorId }}
     {{- end }}

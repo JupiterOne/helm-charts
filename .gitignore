@@ -4,3 +4,6 @@
 # Sync temp files
 _operator_src/
 operator.tar.gz
+
+# Go binaries
+cmd/chartgen/chartgen
