@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   collectorName: {{ .Values.collectorName }}
-  integrationDefinitionName: kubernetes-managed
+  integrationDefinitionName: artifactory
   {{- if .Values.pollingInterval }}
   pollingInterval: {{ .Values.pollingInterval | quote }}
   {{- end }}
@@ -18,16 +18,23 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
+    {{- if .Values.baseUrl }}
+    baseUrl: {{ .Values.baseUrl }}
     {{- end }}
-    {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
+    {{- if .Values.clientAdminName }}
+    clientAdminName: {{ .Values.clientAdminName }}
     {{- end }}
-    {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
+    {{- if .Values.enablePipelineIngestion }}
+    enablePipelineIngestion: {{ .Values.enablePipelineIngestion }}
     {{- end }}
-    {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
+    {{- if .Values.vulnerabilitySeverities }}
+    vulnerabilitySeverities: {{ .Values.vulnerabilitySeverities }}
+    {{- end }}
+    {{- if .Values.artifactsIngestSinceDays }}
+    artifactsIngestSinceDays: {{ .Values.artifactsIngestSinceDays }}
+    {{- end }}
+    {{- if .Values.includeRepositoryArtifacts }}
+    includeRepositoryArtifacts: {{ .Values.includeRepositoryArtifacts }}
     {{- end }}
