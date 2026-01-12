@@ -3,6 +3,16 @@ entries:
   artifactory:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-01-12T19:29:43.536814395Z"
+    description: A Helm chart for the JupiterOne Artifactory Integration
+    digest: 040bb8e464f2155feae4348f0feed2727dcd877a7156fb225dfce84ad5b487aa
+    name: artifactory
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/artifactory-1.0.4/artifactory-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:56.215276601Z"
     description: A Helm chart for the JupiterOne Artifactory Integration
     digest: 139e5f2b26b80ef2cb32ce8363b88adda7055e7626f0ecea2da10e3c0baee64c
@@ -1120,4 +1130,4 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/vsphere-1.0.2/vsphere-1.0.2.tgz
     version: 1.0.2
-generated: "2026-01-12T19:07:01.357753114Z"
+generated: "2026-01-12T19:29:43.537084008Z"
