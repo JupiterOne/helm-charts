@@ -49,6 +49,12 @@ export J1_API_KEY="your-api-key"
 export J1_ACCOUNT_ID="your-account-id"
 ```
 
+Optionally, override the GraphQL endpoint (defaults to `https://graphql.us.jupiterone.io`):
+
+```bash
+export J1_GRAPHQL_ENDPOINT="https://graphql.eu.jupiterone.io"
+```
+
 ## Examples
 
 ### Dry Run (Preview)

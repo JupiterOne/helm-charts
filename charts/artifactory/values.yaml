@@ -68,3 +68,6 @@ secret:
 
   # An 'Artifactory' access token. See <namespace>.jfrog.io/ui/admin/configuration/security/access_tokens.
   clientAccessToken:
+
+  # A 'Pipelines' access token. See <namespace>.jfrog.io/ui/admin/configuration/security/access_tokens.
+  clientPipelineAccessToken:

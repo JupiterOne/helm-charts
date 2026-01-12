@@ -22,9 +22,17 @@ import (
 var templateFS embed.FS
 
 const (
-	// GraphQL endpoint for fetching integration definitions
-	graphqlEndpoint = "https://graphql.us.jupiterone.io"
+	// Default GraphQL endpoint for fetching integration definitions
+	defaultGraphQLEndpoint = "https://graphql.us.jupiterone.io"
 )
+
+// getGraphQLEndpoint returns the GraphQL endpoint, checking for environment variable override
+func getGraphQLEndpoint() string {
+	if endpoint := os.Getenv("J1_GRAPHQL_ENDPOINT"); endpoint != "" {
+		return endpoint
+	}
+	return defaultGraphQLEndpoint
+}
 
 // GraphQL types
 type GraphQLRequest struct {
@@ -77,6 +85,7 @@ type ConfigField struct {
 	HelperText   string         `json:"helperText"`
 	Mask         bool           `json:"mask"`
 	Optional     bool           `json:"optional"`
+	ConfigFields []ConfigField  `json:"configFields"` // Nested config fields
 }
 
 type ConfigOption struct {
@@ -151,11 +160,16 @@ func runChartGen(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("integration %s not found", integrationName)
 		}
 
-		if err := generateChart(*def); err != nil {
+		err, changed := generateChart(*def)
+		if err != nil {
 			return fmt.Errorf("failed to generate chart for %s: %w", integrationName, err)
 		}
 
-		fmt.Printf("Successfully generated chart for %s\n", integrationName)
+		if changed {
+			fmt.Printf("Successfully generated chart for %s\n", integrationName)
+		} else {
+			fmt.Printf("No changes for %s\n", integrationName)
+		}
 		return nil
 	}
 
@@ -182,16 +196,19 @@ func runChartGen(cmd *cobra.Command, args []string) error {
 	}
 
 	// Generate charts
-	generated := 0
+	updated := 0
 	for _, def := range collectorSupported {
-		if err := generateChart(def); err != nil {
+		err, changed := generateChart(def)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to generate chart for %s: %v\n", def.Name, err)
 			continue
 		}
-		generated++
+		if changed {
+			updated++
+		}
 	}
 
-	fmt.Printf("Successfully generated %d charts\n", generated)
+	fmt.Printf("Updated %d of %d charts\n", updated, len(collectorSupported))
 	return nil
 }
 
@@ -199,6 +216,8 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
 	var allDefinitions []IntegrationDefinition
 	var cursor *string
 
+	// Fragment for config field properties (used to avoid repetition)
+	// Note: GraphQL doesn't support infinite recursion, so we go 2 levels deep for nested configFields
 	query := `query GetCollectorSupportedIntegrations($cursor: String) {
     integrationDefinitions(cursor: $cursor) {
       definitions {
@@ -224,6 +243,36 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
           helperText
           mask
           optional
+          configFields {
+            key
+            displayName
+            description
+            type
+            format
+            options {
+              label
+              value
+            }
+            defaultValue
+            helperText
+            mask
+            optional
+            configFields {
+              key
+              displayName
+              description
+              type
+              format
+              options {
+                label
+                value
+              }
+              defaultValue
+              helperText
+              mask
+              optional
+            }
+          }
         }
         configSections {
           displayName
@@ -241,6 +290,36 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
             helperText
             mask
             optional
+            configFields {
+              key
+              displayName
+              description
+              type
+              format
+              options {
+                label
+                value
+              }
+              defaultValue
+              helperText
+              mask
+              optional
+              configFields {
+                key
+                displayName
+                description
+                type
+                format
+                options {
+                  label
+                  value
+                }
+                defaultValue
+                helperText
+                mask
+                optional
+              }
+            }
           }
         }
         authSections {
@@ -262,6 +341,36 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
             helperText
             mask
             optional
+            configFields {
+              key
+              displayName
+              description
+              type
+              format
+              options {
+                label
+                value
+              }
+              defaultValue
+              helperText
+              mask
+              optional
+              configFields {
+                key
+                displayName
+                description
+                type
+                format
+                options {
+                  label
+                  value
+                }
+                defaultValue
+                helperText
+                mask
+                optional
+              }
+            }
           }
         }
       }
@@ -288,7 +397,7 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
 			return nil, fmt.Errorf("failed to marshal request: %w", err)
 		}
 
-		req, err := http.NewRequest("POST", graphqlEndpoint, bytes.NewBuffer(jsonBody))
+		req, err := http.NewRequest("POST", getGraphQLEndpoint(), bytes.NewBuffer(jsonBody))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create request: %w", err)
 		}
@@ -335,6 +444,7 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
 }
 
 func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
+	// Note: GraphQL doesn't support infinite recursion, so we go 2 levels deep for nested configFields
 	query := `query FindIntegrationDefinition($integrationType: String!) {
     findIntegrationDefinition(integrationType: $integrationType) {
       id
@@ -359,6 +469,36 @@ func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
         helperText
         mask
         optional
+        configFields {
+          key
+          displayName
+          description
+          type
+          format
+          options {
+            label
+            value
+          }
+          defaultValue
+          helperText
+          mask
+          optional
+          configFields {
+            key
+            displayName
+            description
+            type
+            format
+            options {
+              label
+              value
+            }
+            defaultValue
+            helperText
+            mask
+            optional
+          }
+        }
       }
       configSections {
         displayName
@@ -376,6 +516,36 @@ func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
           helperText
           mask
           optional
+          configFields {
+            key
+            displayName
+            description
+            type
+            format
+            options {
+              label
+              value
+            }
+            defaultValue
+            helperText
+            mask
+            optional
+            configFields {
+              key
+              displayName
+              description
+              type
+              format
+              options {
+                label
+                value
+              }
+              defaultValue
+              helperText
+              mask
+              optional
+            }
+          }
         }
       }
       authSections {
@@ -397,6 +567,36 @@ func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
           helperText
           mask
           optional
+          configFields {
+            key
+            displayName
+            description
+            type
+            format
+            options {
+              label
+              value
+            }
+            defaultValue
+            helperText
+            mask
+            optional
+            configFields {
+              key
+              displayName
+              description
+              type
+              format
+              options {
+                label
+                value
+              }
+              defaultValue
+              helperText
+              mask
+              optional
+            }
+          }
         }
       }
     }
@@ -416,7 +616,7 @@ func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", graphqlEndpoint, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", getGraphQLEndpoint(), bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -487,22 +687,43 @@ func shouldGenerateChart(def IntegrationDefinition) bool {
 	return false
 }
 
+// flattenConfigFields recursively flattens nested config fields into a single slice
+func flattenConfigFields(fields []ConfigField, seen map[string]bool) []ConfigField {
+	var result []ConfigField
+	for _, cf := range fields {
+		if !seen[cf.Key] {
+			seen[cf.Key] = true
+			result = append(result, cf)
+		}
+		// Recursively add nested fields
+		if len(cf.ConfigFields) > 0 {
+			nested := flattenConfigFields(cf.ConfigFields, seen)
+			result = append(result, nested...)
+		}
+	}
+	return result
+}
+
 // getNonMaskedConfigFields returns all non-masked config fields (from configFields and configSections)
 func getNonMaskedConfigFields(def IntegrationDefinition) []ConfigField {
 	seen := make(map[string]bool)
 	var fields []ConfigField
 
+	// Flatten all configFields (including nested)
+	allConfigFields := flattenConfigFields(def.ConfigFields, make(map[string]bool))
+
 	// Add non-masked configFields
-	for _, cf := range def.ConfigFields {
+	for _, cf := range allConfigFields {
 		if !seen[cf.Key] && !cf.Mask {
 			seen[cf.Key] = true
 			fields = append(fields, cf)
 		}
 	}
 
-	// Add non-masked fields from configSections
+	// Flatten and add non-masked fields from configSections
 	for _, cs := range def.ConfigSections {
-		for _, cf := range cs.ConfigFields {
+		sectionFields := flattenConfigFields(cs.ConfigFields, make(map[string]bool))
+		for _, cf := range sectionFields {
 			if !seen[cf.Key] && !cf.Mask {
 				seen[cf.Key] = true
 				fields = append(fields, cf)
@@ -518,17 +739,21 @@ func getMaskedConfigFields(def IntegrationDefinition) []ConfigField {
 	seen := make(map[string]bool)
 	var fields []ConfigField
 
+	// Flatten all configFields (including nested)
+	allConfigFields := flattenConfigFields(def.ConfigFields, make(map[string]bool))
+
 	// Add masked configFields
-	for _, cf := range def.ConfigFields {
+	for _, cf := range allConfigFields {
 		if !seen[cf.Key] && cf.Mask {
 			seen[cf.Key] = true
 			fields = append(fields, cf)
 		}
 	}
 
-	// Add masked fields from configSections
+	// Flatten and add masked fields from configSections
 	for _, cs := range def.ConfigSections {
-		for _, cf := range cs.ConfigFields {
+		sectionFields := flattenConfigFields(cs.ConfigFields, make(map[string]bool))
+		for _, cf := range sectionFields {
 			if !seen[cf.Key] && cf.Mask {
 				seen[cf.Key] = true
 				fields = append(fields, cf)
@@ -544,17 +769,19 @@ func getAllConfigFields(def IntegrationDefinition) []ConfigField {
 	seen := make(map[string]bool)
 	var fields []ConfigField
 
-	// Add configFields
-	for _, cf := range def.ConfigFields {
+	// Flatten and add all configFields (including nested)
+	allConfigFields := flattenConfigFields(def.ConfigFields, make(map[string]bool))
+	for _, cf := range allConfigFields {
 		if !seen[cf.Key] {
 			seen[cf.Key] = true
 			fields = append(fields, cf)
 		}
 	}
 
-	// Add fields from configSections
+	// Flatten and add fields from configSections
 	for _, cs := range def.ConfigSections {
-		for _, cf := range cs.ConfigFields {
+		sectionFields := flattenConfigFields(cs.ConfigFields, make(map[string]bool))
+		for _, cf := range sectionFields {
 			if !seen[cf.Key] {
 				seen[cf.Key] = true
 				fields = append(fields, cf)
@@ -571,7 +798,9 @@ func getAllAuthFields(def IntegrationDefinition) []ConfigField {
 	var fields []ConfigField
 
 	for _, as := range def.AuthSections {
-		for _, cf := range as.ConfigFields {
+		// Flatten auth section fields (including nested)
+		sectionFields := flattenConfigFields(as.ConfigFields, make(map[string]bool))
+		for _, cf := range sectionFields {
 			if !seen[cf.Key] {
 				seen[cf.Key] = true
 				fields = append(fields, cf)
@@ -580,6 +809,22 @@ func getAllAuthFields(def IntegrationDefinition) []ConfigField {
 	}
 
 	return fields
+}
+
+// getFlattenedAuthSections returns auth sections with flattened configFields
+func getFlattenedAuthSections(def IntegrationDefinition) []AuthSection {
+	var result []AuthSection
+	for _, as := range def.AuthSections {
+		flattened := AuthSection{
+			ID:                   as.ID,
+			DisplayName:          as.DisplayName,
+			Description:          as.Description,
+			VerificationDisabled: as.VerificationDisabled,
+			ConfigFields:         flattenConfigFields(as.ConfigFields, make(map[string]bool)),
+		}
+		result = append(result, flattened)
+	}
+	return result
 }
 
 // hasAuthFields returns true if the integration has any auth fields
@@ -597,7 +842,51 @@ func hasSecretFields(def IntegrationDefinition) bool {
 	return len(getMaskedConfigFields(def)) > 0 || hasAuthFields(def)
 }
 
-func generateChart(def IntegrationDefinition) error {
+// readFileIfExists reads a file and returns its content, or empty string if it doesn't exist
+func readFileIfExists(path string) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
+// chartContentChanged compares generated content with existing files (excluding Chart.yaml version line)
+func chartContentChanged(chartDir string, files map[string]string) bool {
+	for relPath, newContent := range files {
+		fullPath := filepath.Join(chartDir, relPath)
+		existingContent := readFileIfExists(fullPath)
+
+		// For Chart.yaml, compare without the version line
+		if relPath == "Chart.yaml" {
+			existingNoVersion := removeVersionLine(existingContent)
+			newNoVersion := removeVersionLine(newContent)
+			if existingNoVersion != newNoVersion {
+				return true
+			}
+		} else {
+			if existingContent != newContent {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// removeVersionLine removes the version: line from Chart.yaml content for comparison
+func removeVersionLine(content string) string {
+	var lines []string
+	for _, line := range strings.Split(content, "\n") {
+		if !strings.HasPrefix(line, "version:") {
+			lines = append(lines, line)
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// generateChart generates a Helm chart for the given integration definition.
+// Returns (error, changed) where changed indicates if files were written.
+func generateChart(def IntegrationDefinition) (error, bool) {
 	chartName := def.Name
 
 	// Validate chart name (must be valid Kubernetes name)
@@ -629,34 +918,31 @@ func generateChart(def IntegrationDefinition) error {
 			}
 			fmt.Printf("    - %s (%s)%s\n", cf.Key, cf.Type, optionalStr)
 		}
-		return nil
+		return nil, false
 	}
 
-	// Create chart directory structure
 	chartDir := filepath.Join(outputDir, chartName)
 	templatesDir := filepath.Join(chartDir, "templates")
 
-	if err := os.MkdirAll(templatesDir, 0755); err != nil {
-		return fmt.Errorf("failed to create chart directory: %w", err)
-	}
+	// Get current version (will be used for initial generation to compare)
+	currentVersion := getCurrentChartVersion(chartName)
 
-	// Generate Chart.yaml
-	chartYaml, err := generateChartYaml(def)
+	// Generate all files with current version first (for comparison)
+	files := make(map[string]string)
+
+	// Generate Chart.yaml with current version
+	chartYaml, err := generateChartYaml(def, currentVersion)
 	if err != nil {
-		return fmt.Errorf("failed to generate Chart.yaml: %w", err)
+		return fmt.Errorf("failed to generate Chart.yaml: %w", err), false
 	}
-	if err := os.WriteFile(filepath.Join(chartDir, "Chart.yaml"), []byte(chartYaml), 0644); err != nil {
-		return fmt.Errorf("failed to write Chart.yaml: %w", err)
-	}
+	files["Chart.yaml"] = chartYaml
 
 	// Generate values.yaml
 	valuesYaml, err := generateValuesYaml(def)
 	if err != nil {
-		return fmt.Errorf("failed to generate values.yaml: %w", err)
+		return fmt.Errorf("failed to generate values.yaml: %w", err), false
 	}
-	if err := os.WriteFile(filepath.Join(chartDir, "values.yaml"), []byte(valuesYaml), 0644); err != nil {
-		return fmt.Errorf("failed to write values.yaml: %w", err)
-	}
+	files["values.yaml"] = valuesYaml
 
 	// Generate .helmignore
 	helmignore := `# Patterns to ignore when building Helm packages.
@@ -685,31 +971,57 @@ func generateChart(def IntegrationDefinition) error {
 # Helm chart artifacts
 dist/chart/*.tgz
 `
-	if err := os.WriteFile(filepath.Join(chartDir, ".helmignore"), []byte(helmignore), 0644); err != nil {
-		return fmt.Errorf("failed to write .helmignore: %w", err)
-	}
+	files[".helmignore"] = helmignore
 
 	// Generate integrationinstance.yaml template
 	instanceYaml, err := generateIntegrationInstanceYaml(def)
 	if err != nil {
-		return fmt.Errorf("failed to generate integrationinstance.yaml: %w", err)
+		return fmt.Errorf("failed to generate integrationinstance.yaml: %w", err), false
 	}
-	if err := os.WriteFile(filepath.Join(templatesDir, "integrationinstance.yaml"), []byte(instanceYaml), 0644); err != nil {
-		return fmt.Errorf("failed to write integrationinstance.yaml: %w", err)
-	}
+	files["templates/integrationinstance.yaml"] = instanceYaml
 
-	// Generate secret.yaml template if there are secret fields (masked config or auth fields)
+	// Generate secret.yaml template if there are secret fields
 	if hasSecretFields(def) {
 		secretYaml, err := generateSecretYaml(def)
 		if err != nil {
-			return fmt.Errorf("failed to generate secret.yaml: %w", err)
+			return fmt.Errorf("failed to generate secret.yaml: %w", err), false
 		}
-		if err := os.WriteFile(filepath.Join(templatesDir, "secret.yaml"), []byte(secretYaml), 0644); err != nil {
-			return fmt.Errorf("failed to write secret.yaml: %w", err)
+		files["templates/secret.yaml"] = secretYaml
+	}
+
+	// Check if any content has changed (excluding version line in Chart.yaml)
+	if !chartContentChanged(chartDir, files) {
+		if verbose {
+			fmt.Printf("  No changes detected, skipping %s\n", chartName)
+		}
+		return nil, false
+	}
+
+	// Content has changed - bump version and regenerate Chart.yaml
+	newVersion := bumpPatchVersion(currentVersion)
+	chartYaml, err = generateChartYaml(def, newVersion)
+	if err != nil {
+		return fmt.Errorf("failed to generate Chart.yaml: %w", err), false
+	}
+	files["Chart.yaml"] = chartYaml
+
+	if verbose {
+		fmt.Printf("  Changes detected, bumping version %s -> %s\n", currentVersion, newVersion)
+	}
+
+	// Create directories and write all files
+	if err := os.MkdirAll(templatesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create chart directory: %w", err), false
+	}
+
+	for relPath, content := range files {
+		fullPath := filepath.Join(chartDir, relPath)
+		if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("failed to write %s: %w", relPath, err), false
 		}
 	}
 
-	return nil
+	return nil, true
 }
 
 func sanitizeChartName(name string) string {
@@ -736,9 +1048,9 @@ func loadTemplate(name string) (string, error) {
 	return string(content), nil
 }
 
-// getNextChartVersion reads the existing Chart.yaml (if it exists) and returns the next patch version.
+// getCurrentChartVersion reads the existing Chart.yaml (if it exists) and returns the current version.
 // If the chart doesn't exist or version can't be parsed, returns "1.0.0".
-func getNextChartVersion(chartName string) string {
+func getCurrentChartVersion(chartName string) string {
 	chartPath := filepath.Join(outputDir, chartName, "Chart.yaml")
 
 	file, err := os.Open(chartPath)
@@ -756,16 +1068,7 @@ func getNextChartVersion(chartName string) string {
 			versionStr := strings.TrimSpace(strings.TrimPrefix(line, "version:"))
 			// Remove quotes if present
 			versionStr = strings.Trim(versionStr, "\"'")
-
-			v, err := semver.NewVersion(versionStr)
-			if err != nil {
-				// Can't parse version, start fresh
-				return "1.0.0"
-			}
-
-			// Increment patch version
-			nextVersion := v.IncPatch()
-			return nextVersion.String()
+			return versionStr
 		}
 	}
 
@@ -773,7 +1076,17 @@ func getNextChartVersion(chartName string) string {
 	return "1.0.0"
 }
 
-func generateChartYaml(def IntegrationDefinition) (string, error) {
+// bumpPatchVersion increments the patch version of a semver string.
+// If the version can't be parsed, returns "1.0.0".
+func bumpPatchVersion(version string) string {
+	v, err := semver.NewVersion(version)
+	if err != nil {
+		return "1.0.0"
+	}
+	return v.IncPatch().String()
+}
+
+func generateChartYaml(def IntegrationDefinition, version string) (string, error) {
 	tmplContent, err := loadTemplate("Chart.yaml.tmpl")
 	if err != nil {
 		return "", err
@@ -785,7 +1098,6 @@ func generateChartYaml(def IntegrationDefinition) (string, error) {
 	}
 
 	chartName := sanitizeChartName(def.Name)
-	version := getNextChartVersion(chartName)
 
 	data := struct {
 		Name    string
@@ -830,7 +1142,7 @@ func generateValuesYaml(def IntegrationDefinition) (string, error) {
 		IntegrationDefinitionName: def.Name,
 		ConfigFields:              getNonMaskedConfigFields(def),
 		MaskedConfigFields:        getMaskedConfigFields(def),
-		AuthSections:              def.AuthSections,
+		AuthSections:              getFlattenedAuthSections(def),
 		HasSecretFields:           hasSecretFields(def),
 	}
 
