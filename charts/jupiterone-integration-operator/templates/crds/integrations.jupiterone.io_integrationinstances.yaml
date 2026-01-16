@@ -57,7 +57,8 @@ spec:
               config:
                 additionalProperties:
                   type: string
-                description: Config to pass to the create integration API
+                description: Config to pass to the create integration API (non-sensitive
+                  configuration)
                 type: object
               integrationDefinitionName:
                 description: IntegrationDefinitionName is the name of the integration
@@ -85,6 +86,12 @@ spec:
                 type: object
               resourceGroupID:
                 description: ResourceGroupID is the ID of the resource group in JupiterOne
+                type: string
+              secretRef:
+                description: |-
+                  SecretRef is the name of a Secret containing sensitive configuration (e.g., credentials).
+                  The secret data will be merged with Config when creating/updating the integration instance.
+                  Secret keys will override Config keys if there are conflicts.
                 type: string
             type: object
           status:

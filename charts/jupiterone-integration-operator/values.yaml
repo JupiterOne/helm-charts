@@ -33,6 +33,8 @@ controllerManager:
       capabilities:
         drop:
           - "ALL"
+    env:
+      JOB_TTL_SECONDS: "604800" # 7 days in seconds
   securityContext:
     runAsNonRoot: true
     seccompProfile:

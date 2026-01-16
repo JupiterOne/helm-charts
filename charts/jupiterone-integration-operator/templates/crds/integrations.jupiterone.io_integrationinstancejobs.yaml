@@ -18,6 +18,10 @@ spec:
       jsonPath: .status.imageVerified
       name: Verified
       type: string
+    - description: Age of the resource
+      jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1
     schema:
       openAPIV3Schema:
@@ -73,6 +77,12 @@ spec:
             description: IntegrationInstanceJobStatus defines the observed state of
               IntegrationInstanceJob.
             properties:
+              completionTime:
+                description: |-
+                  CompletionTime is the time when the underlying Kubernetes Job completed (succeeded or failed).
+                  Used to determine when TTL cleanup should occur.
+                format: date-time
+                type: string
               imageVerified:
                 description: |-
                   ImageVerified indicates the status of the cosign image verification step.
