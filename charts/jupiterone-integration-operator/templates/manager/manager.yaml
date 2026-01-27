@@ -37,7 +37,7 @@ spec:
           env:
             {{- range $key, $value := .Values.controllerManager.container.env }}
             - name: {{ $key }}
-              value: {{ $value }}
+              value: {{ $value | quote }}
             {{- end }}
             - name: WATCH_NAMESPACE
               valueFrom:
