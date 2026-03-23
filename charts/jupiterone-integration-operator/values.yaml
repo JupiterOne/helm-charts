@@ -44,8 +44,11 @@ controllerManager:
   # Image registry override for private registry environments.
   # When set, integration job images are pulled from this registry instead of ghcr.io.
   # Example: "myregistry.example.com" produces images like "myregistry.example.com/jupiterone/graph-aws:latest"
-  # When set, cosign image verification is skipped (private registry implies organizational trust).
   imageRegistry: ""
+  # Disable cosign image signature verification for integration job images.
+  # Set to true when using private registries that don't mirror ghcr.io cosign signatures.
+  # When false or unset, cosign verification runs as normal against ghcr.io signatures.
+  disableImageSignatureCheck: false
   # Secrets for pulling images from private registries.
   # Applied to both the operator Deployment pod and propagated to spawned integration job pods.
   # Example:

@@ -51,8 +51,9 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 
 | Parameter | Description | Default |
 |---|---|---|
-| `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. Cosign image verification is skipped when set. | `""` |
+| `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. | `""` |
 | `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
+| `controllerManager.disableImageSignatureCheck` | Disable cosign image signature verification for integration job images. Set to `true` when using registries that don't mirror ghcr.io cosign signatures. | `false` |
 
 ### Private Registry Example
 
@@ -63,6 +64,7 @@ controllerManager:
   imageRegistry: "myregistry.example.com"
   imagePullSecrets:
     - name: my-registry-secret
+  disableImageSignatureCheck: true  # Set to true if your registry doesn't mirror ghcr.io cosign signatures
 ```
 
 Then install (or upgrade) using the values file:
@@ -73,7 +75,7 @@ helm install integration-operator jupiterone/jupiterone-integration-operator \
   -f custom-values.yaml
 ```
 
-> **Note:** When `imageRegistry` is set, cosign image verification is automatically skipped, as private registries imply organizational trust.
+> **Note:** `disableImageSignatureCheck` is independent of `imageRegistry`. Cosign verification may work through registry proxies since it resolves signatures against the original source. Only disable it if verification fails in your environment.
 
 ## Usage
 

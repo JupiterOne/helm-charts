@@ -72,6 +72,8 @@ test_e2e_default_backwards_compat() {
     "IMAGE_PULL_SECRETS" "$output"
   assert_not_contains "No imagePullSecrets in pod spec by default" \
     "imagePullSecrets" "$output"
+  assert_not_contains "No DISABLE_IMAGE_SIGNATURE_CHECK in defaults" \
+    "DISABLE_IMAGE_SIGNATURE_CHECK" "$output"
   assert_contains "JOB_TTL_SECONDS still present (operator functionality intact)" \
     "JOB_TTL_SECONDS" "$output"
   assert_contains "WATCH_NAMESPACE still present (operator functionality intact)" \
@@ -179,6 +181,24 @@ test_e2e_multiple_image_pull_secrets() {
     'cred-b' "$output"
 }
 
+test_e2e_disable_signature_check() {
+  # Validates the disableImageSignatureCheck flag renders as DISABLE_IMAGE_SIGNATURE_CHECK env var.
+  # Go operator reads os.LookupEnv("DISABLE_IMAGE_SIGNATURE_CHECK") to skip cosign verification.
+  local output
+  output=$(helm template test-release "$CHART_DIR" \
+    --set controllerManager.imageRegistry=registry.internal.corp.com \
+    --set 'controllerManager.imagePullSecrets[0].name=corp-registry-creds' \
+    --set controllerManager.disableImageSignatureCheck=true)
+
+  assert_contains "DISABLE_IMAGE_SIGNATURE_CHECK env var present" \
+    "name: DISABLE_IMAGE_SIGNATURE_CHECK" "$output"
+  assert_contains "DISABLE_IMAGE_SIGNATURE_CHECK value is true" \
+    'value: "true"' "$output"
+  # Other private registry config still present
+  assert_contains "IMAGE_REGISTRY still present alongside signature check disable" \
+    "name: IMAGE_REGISTRY" "$output"
+}
+
 # --- Run all E2E tests ---
 
 run_test "Default values preserve backwards compatibility" test_e2e_default_backwards_compat
@@ -186,6 +206,7 @@ run_test "imageRegistry flows through to IMAGE_REGISTRY env var" test_e2e_image_
 run_test "imagePullSecrets flows to both pod spec and env var" test_e2e_image_pull_secrets_flow
 run_test "Full private registry configuration (both values)" test_e2e_full_private_registry_config
 run_test "Multiple imagePullSecrets" test_e2e_multiple_image_pull_secrets
+run_test "disableImageSignatureCheck with full private registry config" test_e2e_disable_signature_check
 
 # --- Summary ---
 

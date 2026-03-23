@@ -64,6 +64,8 @@ test_default_values() {
     "IMAGE_PULL_SECRETS" "$output"
   assert_not_contains "No imagePullSecrets in default pod spec" \
     "imagePullSecrets" "$output"
+  assert_not_contains "No DISABLE_IMAGE_SIGNATURE_CHECK in default output" \
+    "DISABLE_IMAGE_SIGNATURE_CHECK" "$output"
   assert_contains "JOB_TTL_SECONDS env var present (sanity check)" \
     "JOB_TTL_SECONDS" "$output"
   assert_contains "WATCH_NAMESPACE env var present (sanity check)" \
@@ -118,12 +120,34 @@ test_both_values() {
     "name: IMAGE_PULL_SECRETS" "$output"
 }
 
+test_disable_signature_check() {
+  local output
+  output=$(helm template test-release "$CHART_DIR" \
+    --set controllerManager.disableImageSignatureCheck=true)
+
+  assert_contains "DISABLE_IMAGE_SIGNATURE_CHECK env var present" \
+    "name: DISABLE_IMAGE_SIGNATURE_CHECK" "$output"
+  assert_contains "DISABLE_IMAGE_SIGNATURE_CHECK value is true" \
+    'value: "true"' "$output"
+}
+
+test_signature_check_false() {
+  local output
+  output=$(helm template test-release "$CHART_DIR" \
+    --set controllerManager.disableImageSignatureCheck=false)
+
+  assert_not_contains "No DISABLE_IMAGE_SIGNATURE_CHECK when false" \
+    "DISABLE_IMAGE_SIGNATURE_CHECK" "$output"
+}
+
 # --- Run all tests ---
 
 run_test "Default values (backwards compatibility)" test_default_values
 run_test "imageRegistry set" test_image_registry
 run_test "imagePullSecrets set" test_image_pull_secrets
 run_test "Both values set" test_both_values
+run_test "disableImageSignatureCheck true" test_disable_signature_check
+run_test "disableImageSignatureCheck false" test_signature_check_false
 
 # --- Summary ---
 

@@ -49,6 +49,10 @@ spec:
             - name: IMAGE_REGISTRY
               value: {{ .Values.controllerManager.imageRegistry | quote }}
             {{- end }}
+            {{- if .Values.controllerManager.disableImageSignatureCheck }}
+            - name: DISABLE_IMAGE_SIGNATURE_CHECK
+              value: "true"
+            {{- end }}
             {{- with .Values.controllerManager.imagePullSecrets }}
             - name: IMAGE_PULL_SECRETS
               value: {{ . | toJson | quote }}
