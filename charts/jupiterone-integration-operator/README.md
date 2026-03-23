@@ -47,6 +47,34 @@ You can customize the installation using Helm values. For example, to set resour
 
 Refer to the [values.yaml](./values.yaml) for all available configuration options.
 
+## Parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. Cosign image verification is skipped when set. | `""` |
+| `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
+
+### Private Registry Example
+
+Create a custom values file (e.g., `custom-values.yaml`) with the private registry configuration:
+
+```yaml
+controllerManager:
+  imageRegistry: "myregistry.example.com"
+  imagePullSecrets:
+    - name: my-registry-secret
+```
+
+Then install (or upgrade) using the values file:
+
+```console
+helm install integration-operator jupiterone/jupiterone-integration-operator \
+  --namespace jupiterone \
+  -f custom-values.yaml
+```
+
+> **Note:** When `imageRegistry` is set, cosign image verification is automatically skipped, as private registries imply organizational trust.
+
 ## Usage
 
 ### Set Default Namespace
