@@ -47,6 +47,36 @@ You can customize the installation using Helm values. For example, to set resour
 
 Refer to the [values.yaml](./values.yaml) for all available configuration options.
 
+## Parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. | `""` |
+| `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
+| `controllerManager.disableImageSignatureCheck` | Disable cosign image signature verification for integration job images. Set to `true` when using registries that don't mirror ghcr.io cosign signatures. | `false` |
+
+### Private Registry Example
+
+Create a custom values file (e.g., `custom-values.yaml`) with the private registry configuration:
+
+```yaml
+controllerManager:
+  imageRegistry: "myregistry.example.com"
+  imagePullSecrets:
+    - name: my-registry-secret
+  disableImageSignatureCheck: true  # Set to true if your registry doesn't mirror ghcr.io cosign signatures
+```
+
+Then install (or upgrade) using the values file:
+
+```console
+helm install integration-operator jupiterone/jupiterone-integration-operator \
+  --namespace jupiterone \
+  -f custom-values.yaml
+```
+
+> **Note:** `disableImageSignatureCheck` is independent of `imageRegistry`. Cosign verification may work through registry proxies since it resolves signatures against the original source. Only disable it if verification fails in your environment.
+
 ## Usage
 
 ### Set Default Namespace

@@ -45,6 +45,18 @@ spec:
                   fieldPath: metadata.namespace
             - name: K8S_INTEGRATION_SERVICE_ACCOUNT
               value: {{ .Values.integration.serviceAccountName }}
+            {{- if .Values.controllerManager.imageRegistry }}
+            - name: IMAGE_REGISTRY
+              value: {{ .Values.controllerManager.imageRegistry | quote }}
+            {{- end }}
+            {{- if .Values.controllerManager.disableImageSignatureCheck }}
+            - name: DISABLE_IMAGE_SIGNATURE_CHECK
+              value: "true"
+            {{- end }}
+            {{- with .Values.controllerManager.imagePullSecrets }}
+            - name: IMAGE_PULL_SECRETS
+              value: {{ . | toJson | quote }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.controllerManager.container.livenessProbe | nindent 12 }}
           readinessProbe:
@@ -64,6 +76,10 @@ spec:
       securityContext:
         {{- toYaml .Values.controllerManager.securityContext | nindent 8 }}
       serviceAccountName: {{ .Values.controllerManager.serviceAccountName }}
+      {{- with .Values.controllerManager.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.controllerManager.terminationGracePeriodSeconds }}
       {{- if and .Values.certmanager.enable .Values.metrics.enable }}
       volumes:
