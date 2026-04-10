@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "collectorName": {
+      "type": "string",
+      "description": "The name of the collector (IntegrationRunner) in the same namespace"
+    },
+    "pollingInterval": {
+      "type": "string",
+      "description": "How often the integration should run",
+      "enum": [
+        "DISABLED",
+        "THIRTY_MINUTES",
+        "ONE_HOUR",
+        "FOUR_HOURS",
+        "EIGHT_HOURS",
+        "TWELVE_HOURS",
+        "ONE_DAY",
+        "ONE_WEEK"
+      ]
+    },
+    "pollingIntervalCron": {
+      "type": "object",
+      "description": "Cron schedule for polling (alternative to pollingInterval)",
+      "properties": {
+        "hour": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 23
+        },
+        "dayOfWeek": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        }
+      },
+      "required": ["hour", "dayOfWeek"]
+    },
+    "resourceGroupId": {
+      "type": "string",
+      "description": "Resource Group ID to associate with the integration instance"
+    },
+    "config": {
+      "type": "object",
+      "description": "Non-sensitive configuration passed to spec.config on the IntegrationInstance. All values must be strings.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["collectorName"]
+}
