@@ -31,3 +31,6 @@ spec:
     {{- if .Values.crdMappingConfig }}
     crdMappingConfig: {{ .Values.crdMappingConfig }}
     {{- end }}
+    {{- if not (or .Values.includeNamespaces .Values.excludeNamespaces .Values.loadKubernetesConfigFromDefault .Values.crdMappingConfig) }}
+    {}
+    {{- end }}
