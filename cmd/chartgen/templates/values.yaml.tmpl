@@ -42,7 +42,16 @@ createSecret: true
 config: {}
 {{- if .ConfigFields }}
 {{- range .ConfigFields }}
-  # {{ if .Description }}{{ .Description }}{{ end }}
+
+{{ if .Description -}}
+  # {{ .Description }}
+{{ end -}}
+{{ if .HelperText -}}
+  # {{ .HelperText }}
+{{ end -}}
+{{ if .Options -}}
+  # Options: {{ range $i, $opt := .Options }}{{ if $i }}, {{ end }}{{ $opt.Value }}{{ end }}
+{{ end -}}
   # {{ .Key }}:{{ if .DefaultValue }} {{ formatDefaultValue .DefaultValue }}{{ end }}
 {{- end }}
 {{- end }}
