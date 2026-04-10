@@ -7,5 +7,6 @@ operator.tar.gz
 
 # Go binaries
 cmd/chartgen/chartgen
-/chartgen.claude-flow/
+/chartgen
+claude-flow/
 .swarm/
