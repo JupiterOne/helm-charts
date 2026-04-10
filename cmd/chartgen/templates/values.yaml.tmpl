@@ -32,23 +32,18 @@ secretName: "{{ .IntegrationDefinitionName }}-secret"
 # Set to false if you want to manage the secret externally
 createSecret: true
 {{- end }}
-{{- if .ConfigFields }}
+
 
 # =============================================================================
 # Integration Configuration
+# Passed directly to spec.config on the IntegrationInstance resource.
+# Add or remove fields here without requiring template changes.
 # =============================================================================
+config: {}
+{{- if .ConfigFields }}
 {{- range .ConfigFields }}
-
-{{ if .Description -}}
-# {{ .Description }}
-{{ end -}}
-{{ if .HelperText -}}
-# {{ .HelperText }}
-{{ end -}}
-{{ if .Options -}}
-# Options: {{ range $i, $opt := .Options }}{{ if $i }}, {{ end }}{{ $opt.Value }}{{ end }}
-{{ end -}}
-{{ if .Optional }}# {{ end }}{{ .Key }}:{{ if .DefaultValue }} {{ formatDefaultValue .DefaultValue }}{{ end }}
+  # {{ if .Description }}{{ .Description }}{{ end }}
+  # {{ .Key }}:{{ if .DefaultValue }} {{ formatDefaultValue .DefaultValue }}{{ end }}
 {{- end }}
 {{- end }}
 {{- if .HasSecretFields }}

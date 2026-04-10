@@ -21,16 +21,4 @@ spec:
 {{- if .HasSecretFields }}
   secretRef: {{ "{{ .Values.secretName }}" }}
 {{- end }}
-  config:
-{{- if .ConfigFields }}
-{{- range .ConfigFields }}
-    {{ "{{-" }} if .Values.{{ .Key }} {{ "}}" }}
-    {{ .Key }}: {{ "{{ .Values." }}{{ .Key }}{{ if eq .Type "string" }} | quote{{ end }}{{ " }}" }}
-    {{ "{{-" }} end {{ "}}" }}
-{{- end }}
-    {{ "{{-" }} if not (or{{ range .ConfigFields }} .Values.{{ .Key }}{{ end }}) {{ "}}" }}
-    {}
-    {{ "{{-" }} end {{ "}}" }}
-{{- else }}
-    {}
-{{- end }}
+  config: {{ "{{ .Values.config | default dict | toYaml | nindent 4 }}" }}
