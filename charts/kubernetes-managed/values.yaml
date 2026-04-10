@@ -24,12 +24,18 @@ pollingInterval: "ONE_WEEK"
 
 # =============================================================================
 # Integration Configuration
-# Passed directly to spec.config on the IntegrationInstance resource.
-# Add or remove fields here without requiring template changes.
 # =============================================================================
-config: {}
-  # includeNamespaces: "default,production,staging"
-  # excludeNamespaces: "kube-system,kube-public,kube-node-lease"
-  # loadKubernetesConfigFromDefault: false
-  # crdMappingConfig: |
-  #   resources: ...
+
+# Specify the namespaces you want to scan. Only the namespaces listed here will be ingested. If this field is left empty, all namespaces will be scanned (unless you specify exclusions below). Separate namespace names with commas.
+# Example: default,production,staging
+# includeNamespaces:
+
+# Specify the namespaces you want to exclude from scanning. Any namespace listed here will be skipped during ingestion. This is useful for excluding system namespaces or namespaces you don't want to monitor. Separate namespace names with commas.
+# Example: kube-system,kube-public,kube-node-lease
+# excludeNamespaces:
+
+# Enable this if you're running the integration outside of Kubernetes (like on your local machine). Disable this if you're running the integration inside a Kubernetes cluster. When disabled, the integration will use the cluster's built-in authentication.
+# loadKubernetesConfigFromDefault:
+
+# Specify in YAML format the field mapping between Kubernetes Custom Resource Definitions and JupiterOne entities.
+# crdMappingConfig:
