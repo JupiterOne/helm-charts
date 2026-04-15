@@ -54,6 +54,7 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. | `""` |
 | `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
 | `controllerManager.disableImageSignatureCheck` | Disable cosign image signature verification for integration job images. Set to `true` when using registries that don't mirror ghcr.io cosign signatures. | `false` |
+| `controllerManager.jobResources` | Resource requests and limits applied to integration job containers. Configure to comply with cluster resource policies (e.g. Kyverno, OPA/Gatekeeper). | `{}` |
 
 ### Private Registry Example
 
@@ -76,6 +77,21 @@ helm install integration-operator jupiterone/jupiterone-integration-operator \
 ```
 
 > **Note:** `disableImageSignatureCheck` is independent of `imageRegistry`. Cosign verification may work through registry proxies since it resolves signatures against the original source. Only disable it if verification fails in your environment.
+
+### Job Resources Example
+
+If your cluster enforces resource policies (e.g. Kyverno `require-requests-limits`), configure resource requirements for integration job containers:
+
+```yaml
+controllerManager:
+  jobResources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+```
 
 ## Usage
 

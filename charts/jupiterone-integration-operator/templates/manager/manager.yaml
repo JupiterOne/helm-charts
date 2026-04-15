@@ -57,6 +57,10 @@ spec:
             - name: IMAGE_PULL_SECRETS
               value: {{ . | toJson | quote }}
             {{- end }}
+            {{- with .Values.controllerManager.jobResources }}
+            - name: JOB_RESOURCES
+              value: {{ . | toJson | quote }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.controllerManager.container.livenessProbe | nindent 12 }}
           readinessProbe:
