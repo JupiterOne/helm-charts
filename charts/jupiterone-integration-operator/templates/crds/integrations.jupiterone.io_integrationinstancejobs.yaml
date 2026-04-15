@@ -18,6 +18,10 @@ spec:
       jsonPath: .status.imageVerified
       name: Verified
       type: string
+    - description: Indicates if the Kubernetes Job was created
+      jsonPath: .status.jobCreated
+      name: JobCreated
+      type: string
     - description: Age of the resource
       jsonPath: .metadata.creationTimestamp
       name: Age
@@ -87,6 +91,16 @@ spec:
                 description: |-
                   ImageVerified indicates the status of the cosign image verification step.
                   It can be one of the following values: PENDING, SUCCESS, FAILED.
+                type: string
+              jobCreated:
+                description: |-
+                  JobCreated indicates whether the Kubernetes Job was successfully created.
+                  Values: PENDING, SUCCESS, FAILED.
+                type: string
+              jobCreationError:
+                description: |-
+                  JobCreationError contains the error message if Job creation failed.
+                  Empty when JobCreated is SUCCESS or PENDING. Truncated to 1024 characters.
                 type: string
             type: object
         type: object
