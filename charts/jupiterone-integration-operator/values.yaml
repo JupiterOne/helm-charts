@@ -55,6 +55,18 @@ controllerManager:
   #   imagePullSecrets:
   #     - name: my-registry-secret
   imagePullSecrets: []
+  # Resource requests and limits applied to integration job containers.
+  # Configure these to comply with cluster resource policies (e.g. Kyverno, OPA/Gatekeeper).
+  # When empty, no resource requirements are set on job containers.
+  # Example:
+  #   jobResources:
+  #     requests:
+  #       cpu: 100m
+  #       memory: 256Mi
+  #     limits:
+  #       cpu: "1"
+  #       memory: 1Gi
+  jobResources: {}
 
 # [RBAC]: To enable RBAC (Permissions) configurations
 rbac:
