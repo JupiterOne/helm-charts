@@ -716,6 +716,16 @@ entries:
     version: 1.0.2
   jupiterone-integration-operator:
   - apiVersion: v2
+    appVersion: v0.2.2
+    created: "2026-06-01T14:35:30.508108518Z"
+    description: JupiterOne Integration Operator for running integrations in Kubernetes
+    digest: a89bab37263b357589597ceaeb4fc780788a8ee32e78c53c3b3bf2e1df75de26
+    name: jupiterone-integration-operator
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jupiterone-integration-operator-1.3.1/jupiterone-integration-operator-1.3.1.tgz
+    version: 1.3.1
+  - apiVersion: v2
     appVersion: v0.2.0
     created: "2026-04-15T20:08:08.888204685Z"
     description: JupiterOne Integration Operator for running integrations in Kubernetes
@@ -1220,4 +1230,4 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/vsphere-1.0.2/vsphere-1.0.2.tgz
     version: 1.0.2
-generated: "2026-04-15T20:08:08.888615485Z"
+generated: "2026-06-01T14:35:30.508286422Z"
