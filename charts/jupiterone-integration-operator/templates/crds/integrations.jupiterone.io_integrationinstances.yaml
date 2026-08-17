@@ -89,10 +89,64 @@ spec:
                 type: string
               secretRef:
                 description: |-
-                  SecretRef is the name of a Secret containing sensitive configuration (e.g., credentials).
+                  SecretRef is the name of a Kubernetes Secret containing sensitive configuration (e.g., credentials).
                   The secret data will be merged with Config when creating/updating the integration instance.
                   Secret keys will override Config keys if there are conflicts.
+                  Deprecated: prefer SecretSource, which also supports AWS Secrets Manager. SecretSource takes precedence when both are set.
                 type: string
+              secretSource:
+                description: |-
+                  SecretSource selects where the sensitive configuration is read from (a Kubernetes Secret
+                  or AWS Secrets Manager). When set, it takes precedence over SecretRef. The resolved data
+                  is merged with Config, overriding Config keys on conflict.
+                properties:
+                  awsSecretsManager:
+                    description: |-
+                      AWSSecretsManager configures resolution from AWS Secrets Manager.
+                      Required when provider is "awsSecretsManager".
+                    properties:
+                      region:
+                        description: Region is the AWS region of the secret. Defaults
+                          to the operator's region when empty.
+                        type: string
+                      secretId:
+                        description: SecretID is the ARN or name of the secret in
+                          AWS Secrets Manager.
+                        minLength: 1
+                        type: string
+                      versionStage:
+                        description: VersionStage is the staging label of the version
+                          to retrieve. Defaults to AWSCURRENT.
+                        type: string
+                    required:
+                    - secretId
+                    type: object
+                  kubernetes:
+                    description: |-
+                      Kubernetes configures resolution from a Kubernetes Secret in the resource's namespace.
+                      Required when provider is "kubernetes".
+                    properties:
+                      name:
+                        description: Name is the name of the Kubernetes Secret.
+                        minLength: 1
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  provider:
+                    description: Provider selects the secret backend.
+                    enum:
+                    - kubernetes
+                    - awsSecretsManager
+                    type: string
+                required:
+                - provider
+                type: object
+                x-kubernetes-validations:
+                - message: awsSecretsManager must be set when provider is awsSecretsManager
+                  rule: self.provider != 'awsSecretsManager' || has(self.awsSecretsManager)
+                - message: kubernetes must be set when provider is kubernetes
+                  rule: self.provider != 'kubernetes' || has(self.kubernetes)
             type: object
           status:
             description: IntegrationInstanceStatus defines the observed state of IntegrationInstance.

@@ -59,6 +59,59 @@ spec:
                 description: AccountID is the JupiterOne account ID that this integration
                   runner belongs to.
                 type: string
+              apiTokenSource:
+                description: |-
+                  APITokenSource selects where the user's JupiterOne API token is read from (a Kubernetes Secret
+                  or AWS Secrets Manager). When set, it takes precedence over SecretAPITokenName. The resolved
+                  secret must contain a "token" key holding the API token.
+                properties:
+                  awsSecretsManager:
+                    description: |-
+                      AWSSecretsManager configures resolution from AWS Secrets Manager.
+                      Required when provider is "awsSecretsManager".
+                    properties:
+                      region:
+                        description: Region is the AWS region of the secret. Defaults
+                          to the operator's region when empty.
+                        type: string
+                      secretId:
+                        description: SecretID is the ARN or name of the secret in
+                          AWS Secrets Manager.
+                        minLength: 1
+                        type: string
+                      versionStage:
+                        description: VersionStage is the staging label of the version
+                          to retrieve. Defaults to AWSCURRENT.
+                        type: string
+                    required:
+                    - secretId
+                    type: object
+                  kubernetes:
+                    description: |-
+                      Kubernetes configures resolution from a Kubernetes Secret in the resource's namespace.
+                      Required when provider is "kubernetes".
+                    properties:
+                      name:
+                        description: Name is the name of the Kubernetes Secret.
+                        minLength: 1
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  provider:
+                    description: Provider selects the secret backend.
+                    enum:
+                    - kubernetes
+                    - awsSecretsManager
+                    type: string
+                required:
+                - provider
+                type: object
+                x-kubernetes-validations:
+                - message: awsSecretsManager must be set when provider is awsSecretsManager
+                  rule: self.provider != 'awsSecretsManager' || has(self.awsSecretsManager)
+                - message: kubernetes must be set when provider is kubernetes
+                  rule: self.provider != 'kubernetes' || has(self.kubernetes)
               collectorId:
                 description: CollectorID is the ID of the collector that this integration
                   runner is associated with.
@@ -73,8 +126,9 @@ spec:
                   This defaults to `us` if not specified.
                 type: string
               secretAPITokenName:
-                description: SecretAPITokenName is the name of the Kubernetes secret
-                  that contains the user's API token for API access.
+                description: |-
+                  SecretAPITokenName is the name of the Kubernetes secret that contains the user's API token for API access.
+                  Deprecated: prefer APITokenSource, which also supports AWS Secrets Manager. APITokenSource takes precedence when both are set.
                 type: string
               secretName:
                 description: |-

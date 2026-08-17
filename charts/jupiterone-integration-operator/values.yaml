@@ -35,12 +35,25 @@ controllerManager:
           - "ALL"
     env:
       JOB_TTL_SECONDS: "604800" # 7 days in seconds
+      # How long resolved AWS Secrets Manager values are cached, in seconds.
+      # Only used when a CR reads credentials via secretSource/apiTokenSource
+      # with provider "awsSecretsManager". Defaults to 60; set to "0" to disable.
+      # ASM_CACHE_TTL_SECONDS: "60"
   securityContext:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
   terminationGracePeriodSeconds: 10
   serviceAccountName: jupiterone-integration-operator-controller-manager
+  # Annotations applied to the operator ServiceAccount.
+  # Required to read credentials from AWS Secrets Manager on EKS, which grants
+  # the operator an IAM role via IRSA.
+  # Example:
+  #   serviceAccount:
+  #     annotations:
+  #       eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<role-name>
+  serviceAccount:
+    annotations: {}
   # Image registry override for private registry environments.
   # When set, integration job images are pulled from this registry instead of ghcr.io.
   # Example: "myregistry.example.com" produces images like "myregistry.example.com/jupiterone/graph-aws:latest"
