@@ -18,6 +18,7 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- if or .Values.includeNamespaces .Values.excludeNamespaces .Values.loadKubernetesConfigFromDefault .Values.crdMappingConfig }}
   config:
     {{- if .Values.includeNamespaces }}
     includeNamespaces: {{ .Values.includeNamespaces }}
@@ -31,6 +32,4 @@ spec:
     {{- if .Values.crdMappingConfig }}
     crdMappingConfig: {{ .Values.crdMappingConfig }}
     {{- end }}
-    {{- if not (or .Values.includeNamespaces .Values.excludeNamespaces .Values.loadKubernetesConfigFromDefault .Values.crdMappingConfig) }}
-    {}
-    {{- end }}
+  {{- end }}
