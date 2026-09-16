@@ -1,11 +1,35 @@
+{{- if or (not .Values.accountID) (eq (toString .Values.accountID) "<account-id>") }}
+{{- fail "accountID is required (JupiterOne UI > Settings > Account Management)" }}
+{{- end }}
 apiVersion: integrations.jupiterone.io/v1
 kind: IntegrationRunner
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  accountId: {{ .Values.accountID }}
+  accountId: {{ .Values.accountID | quote }}
   secretName: {{ .Release.Name }}-j1internal
   secretAPITokenName: {{ .Values.secretAPITokenName }}
   syncIntervalSeconds: {{ .Values.syncIntervalSeconds }}
   jupiterOneEnvironment: {{ .Values.jupiterOneEnvironment }}
+  {{- with .Values.apiTokenSource }}
+  {{- if .provider }}
+  apiTokenSource:
+    provider: {{ .provider }}
+    {{- if eq .provider "kubernetes" }}
+    kubernetes:
+      name: {{ .kubernetes.name | default $.Values.secretAPITokenName }}
+    {{- else if eq .provider "awsSecretsManager" }}
+    awsSecretsManager:
+      secretId: {{ required "apiTokenSource.awsSecretsManager.secretId is required when provider is awsSecretsManager" .awsSecretsManager.secretId }}
+      {{- with .awsSecretsManager.region }}
+      region: {{ . }}
+      {{- end }}
+      {{- with .awsSecretsManager.versionStage }}
+      versionStage: {{ . }}
+      {{- end }}
+    {{- else }}
+    {{- fail (printf "apiTokenSource.provider must be \"kubernetes\" or \"awsSecretsManager\", got %q" .provider) }}
+    {{- end }}
+  {{- end }}
+  {{- end }}

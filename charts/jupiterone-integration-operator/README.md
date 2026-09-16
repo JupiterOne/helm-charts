@@ -51,10 +51,98 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 
 | Parameter | Description | Default |
 |---|---|---|
-| `controllerManager.imageRegistry` | Image registry override for private registry environments. When set, integration job images are pulled from this registry instead of `ghcr.io`. | `""` |
-| `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
-| `controllerManager.disableImageSignatureCheck` | Disable cosign image signature verification for integration job images. Set to `true` when using registries that don't mirror ghcr.io cosign signatures. | `false` |
-| `controllerManager.jobResources` | Resource requests and limits applied to integration job containers. Configure to comply with cluster resource policies (e.g. Kyverno, OPA/Gatekeeper). | `{}` |
+| `nameOverride` | Overrides the chart name used in the `app.kubernetes.io/name` label. | `""` |
+| `controllerManager.replicas` | Manager replicas. Leader election is on, so extra replicas are standby only. | `1` |
+| `controllerManager.container.image.repository` | Manager image repository. | `ghcr.io/jupiterone/jupiterone-integration-operator` |
+| `controllerManager.container.image.tag` | Manager image tag. Empty uses the chart `appVersion`. | `""` |
+| `controllerManager.container.args` | Manager command-line flags. | `--leader-elect`, `--metrics-bind-address=:8443`, `--health-probe-bind-address=:8081` |
+| `controllerManager.container.env` | Extra environment variables on the manager as a `KEY: value` map (`JOB_TTL_SECONDS`, `JOB_ACTIVE_DEADLINE_SECONDS`, `ASM_CACHE_TTL_SECONDS`, `AWS_REGION`, `LOG_LEVEL`, `HTTP_PROXY`, ...). | `JOB_TTL_SECONDS: "604800"` |
+| `controllerManager.container.resources` | Manager container requests and limits. | `100m`/`64Mi` requests, `500m`/`512Mi` limits |
+| `controllerManager.container.livenessProbe` | Manager liveness probe. | `GET /healthz` on `8081` |
+| `controllerManager.container.readinessProbe` | Manager readiness probe. | `GET /readyz` on `8081` |
+| `controllerManager.container.securityContext` | Manager container security context. | `allowPrivilegeEscalation: false`, drop `ALL` |
+| `controllerManager.securityContext` | Manager pod security context. | `runAsNonRoot: true`, seccomp `RuntimeDefault` |
+| `controllerManager.pod.labels` | Extra labels on the manager pod. | `{}` |
+| `controllerManager.terminationGracePeriodSeconds` | Manager pod termination grace period. | `10` |
+| `controllerManager.serviceAccountName` | Name of the operator ServiceAccount. | `jupiterone-integration-operator-controller-manager` |
+| `controllerManager.serviceAccount.annotations` | Annotations on the operator ServiceAccount. Set the IRSA role here when the operator reads credentials from AWS Secrets Manager. | `{}` |
+| `controllerManager.imageRegistry` | Registry that replaces `ghcr.io` for integration job images (`<registry>/jupiterone/graph-<name>:latest`). Hostname only. | `""` |
+| `controllerManager.disableImageSignatureCheck` | Skip cosign signature verification of integration job images. | `false` |
+| `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. | `[]` |
+| `controllerManager.jobResources` | Requests and limits applied to integration job containers. | `{}` |
+| `rbac.enable` | Create the operator ServiceAccount, Roles and bindings. | `true` |
+| `metrics.enable` | Create the metrics Service. Remove `--metrics-bind-address` from `args` when disabling. | `true` |
+| `prometheus.enable` | Create a `ServiceMonitor` for the metrics Service. | `false` |
+| `certmanager.enable` | Issue the metrics serving certificate with cert-manager. | `false` |
+| `crd.keep` | Keep the cert-manager Certificate on uninstall (`helm.sh/resource-policy: keep`). | `false` |
+| `networkPolicy.enable` | Create a NetworkPolicy allowing metrics scrapes from namespaces labeled `metrics: enabled`. | `false` |
+| `integration.create` | Create the `kubernetes-managed` integration ServiceAccount, ClusterRole and ClusterRoleBinding. | `true` |
+| `integration.serviceAccountName` | ServiceAccount used by `kubernetes-managed` integration job pods (`K8S_INTEGRATION_SERVICE_ACCOUNT`). | `jupiterone` |
+| `integration.serviceAccountNamespace` | Namespace of that ServiceAccount. Changing it is not supported. | `jupiterone` |
+
+Environment variables the manager reads that have no dedicated value are set
+through `controllerManager.container.env`:
+
+| Variable | Description | Default |
+|---|---|---|
+| `JOB_TTL_SECONDS` | Seconds a finished `IntegrationInstanceJob` and its Job are kept. | `2592000`; the chart sets `604800` |
+| `JOB_ACTIVE_DEADLINE_SECONDS` | `activeDeadlineSeconds` on each integration Job. | `86400` |
+| `ASM_CACHE_TTL_SECONDS` | Cache TTL for AWS Secrets Manager lookups; `0` disables. | `60` |
+| `AWS_REGION` | Region for the AWS SDK default chain when a CR omits `region`. | unset |
+| `LOG_LEVEL` | `debug`, `info`, `warn` or `error`. | `info` |
+| `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` | Proxy settings; also injected into integration job pods. | unset |
+
+### ServiceAccount annotations (IRSA)
+
+Every ServiceAccount the chart creates accepts annotations, so an IAM role can
+be attached without editing rendered manifests:
+
+```yaml
+controllerManager:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/jupiterone-integration-operator
+```
+
+The operator needs that role only when a CR reads credentials from AWS Secrets
+Manager (`apiTokenSource` / `secretSource` with `provider: awsSecretsManager`).
+Trust policies and permission policies are in the operator README under
+[AWS authentication (IRSA)](https://github.com/JupiterOne/jupiterone-integration-operator#aws-authentication-irsa).
+
+### AWS Secrets Manager Example
+
+```yaml
+controllerManager:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/jupiterone-integration-operator
+  container:
+    env:
+      AWS_REGION: us-east-1
+      ASM_CACHE_TTL_SECONDS: "60"
+```
+
+Then reference the secret from the runner chart (`apiTokenSource`) or an
+`IntegrationInstance` (`secretSource`).
+
+### Metrics with Prometheus and cert-manager
+
+```yaml
+metrics:
+  enable: true
+prometheus:
+  enable: true
+certmanager:
+  enable: true
+networkPolicy:
+  enable: true
+```
+
+cert-manager issues `metrics-server-cert` for
+`jupiterone-integration-operator-metrics-service.<namespace>.svc`, the
+ServiceMonitor scrapes it over TLS, and the NetworkPolicy admits scrapes only
+from namespaces labeled `metrics: enabled`. Without `certmanager.enable` the
+ServiceMonitor uses `insecureSkipVerify: true`.
 
 ### Private Registry Example
 

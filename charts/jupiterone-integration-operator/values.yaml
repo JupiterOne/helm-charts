@@ -1,3 +1,6 @@
+# Overrides the chart name used in the app.kubernetes.io/name label.
+nameOverride: ""
+
 # [MANAGER]: Manager Deployment Configurations
 controllerManager:
   replicas: 1
@@ -43,6 +46,9 @@ controllerManager:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
+  # Extra labels on the manager pod.
+  pod:
+    labels: {}
   terminationGracePeriodSeconds: 10
   serviceAccountName: jupiterone-integration-operator-controller-manager
   # Annotations applied to the operator ServiceAccount.
@@ -98,6 +104,10 @@ prometheus:
 # [CERT-MANAGER]: To enable cert-manager injection to webhooks set true
 certmanager:
   enable: false
+
+# [CRD]: Keep the cert-manager Certificate on uninstall (helm.sh/resource-policy: keep)
+crd:
+  keep: false
 
 # [NETWORK POLICIES]: To enable NetworkPolicies set true
 networkPolicy:
