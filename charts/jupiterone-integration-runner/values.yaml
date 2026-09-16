@@ -1,19 +1,48 @@
-# The name of the secret that holds the API token.
-# The key in the secret must be 'token'
-secretAPITokenName: j1token
+# The JupiterOne account ID, found in the JupiterOne UI under Settings > Account Management
+accountID: <account-id>
 
-# Set this to false if you are using an external secret
+# The environment for JupiterOne API
+jupiterOneEnvironment: us
+
+# The interval in seconds for syncing data with JupiterOne
+syncIntervalSeconds: 30
+
+# Create a Kubernetes Secret holding the API token from `apiToken` below.
+# Set to false when the Secret is managed elsewhere, or when reading the token
+# from AWS Secrets Manager via `apiTokenSource`.
 createSecret: true
 
 # This is an account level API token
 # This is only required if 'createSecret' is true
 apiToken: <api-token>
 
-# The JupiterOne account ID, found in the JupiterOne UI under Settings > Account Management
-accountID: <account-id>
+# The name of the Kubernetes Secret that holds the API token.
+# The key in the secret must be 'token'. Created by this chart when
+# `createSecret` is true; referenced by the runner otherwise.
+secretAPITokenName: j1token
 
-# The interval in seconds for syncing data with JupiterOne
-syncIntervalSeconds: 30
-
-# The environment for JupiterOne API
-jupiterOneEnvironment: us
+# Where the runner reads its JupiterOne API token from. Leave `provider` empty
+# to use the Kubernetes Secret named by `secretAPITokenName`.
+# The resolved secret must be a JSON object with a "token" key.
+# Example (AWS Secrets Manager; the operator must have IRSA access, see the
+# jupiterone-integration-operator chart):
+#   createSecret: false
+#   apiTokenSource:
+#     provider: awsSecretsManager
+#     awsSecretsManager:
+#       secretId: jupiterone/runner-api-token
+#       region: us-east-1
+#       versionStage: AWSCURRENT
+apiTokenSource:
+  # "kubernetes" or "awsSecretsManager"
+  provider: ""
+  kubernetes:
+    # Defaults to `secretAPITokenName` when empty
+    name: ""
+  awsSecretsManager:
+    # ARN or name of the secret; required when provider is awsSecretsManager
+    secretId: ""
+    # Defaults to the operator's region when empty
+    region: ""
+    # Defaults to AWSCURRENT when empty
+    versionStage: ""
