@@ -128,12 +128,9 @@ controllerManager:
 
 **Cross-account ECR.** Grant the job role only `sts:AssumeRole` on the role in
 the registry's account; that role holds the ECR permissions and trusts the job
-role, pinned to the External ID generated when the integration instance is
-saved. That trust is between two identities the customer owns: the `Principal`
-is the customer's job pod role, and `sts:ExternalId` is the External ID shown on
-the customer's integration instance -- not a JupiterOne AWS account and not the
-External ID of the JupiterOne-managed AWS integration. Several registries means
-one such role per account and one `sts:AssumeRole` resource per target.
+role. That trust is between two identities the customer owns: the `Principal`
+is the customer's job pod role, not a JupiterOne AWS account. Several registries
+means one such role per account and one `sts:AssumeRole` resource per target.
 
 This ServiceAccount is shared by every integration job pod in the release, so
 keep its own policy to the `sts:AssumeRole` targets it needs and leave the ECR
