@@ -2,10 +2,6 @@ name: Pull Request Checks
 
 on:
   pull_request:
-    paths:
-      - 'charts/jupiterone-integration-operator/**'
-      - 'charts/jupiterone-integration-runner/**'
-      - '.github/workflows/pr.yml'
 
 jobs:
   verify-operator-crds:
