@@ -138,8 +138,8 @@ permissions on the assumed roles. Where a workload needs stronger separation,
 install a second operator and runner in their own namespace with their own
 `integration.jobServiceAccount`.
 
-Trust policies, IAM policy documents, and Terraform, Crossplane and
-CloudFormation examples are in the operator repository:
+Trust policies, IAM policy documents and the step-by-step SBOM for AWS ECR
+setup are in the operator repository:
 [AWS authentication (IRSA)](https://github.com/JupiterOne/jupiterone-integration-operator#aws-authentication-irsa).
 
 Requires the operator release that adds `INTEGRATION_JOB_SERVICE_ACCOUNT`
