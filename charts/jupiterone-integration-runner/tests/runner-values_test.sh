@@ -18,7 +18,7 @@ assert_contains() {
   local needle="$2"
   local haystack="$3"
 
-  if echo "$haystack" | grep -qF "$needle"; then
+  if grep -qF -- "$needle" <<<"$haystack"; then
     echo "  PASS: $description"
     PASSED=$((PASSED + 1))
   else
@@ -33,7 +33,7 @@ assert_not_contains() {
   local needle="$2"
   local haystack="$3"
 
-  if echo "$haystack" | grep -qF "$needle"; then
+  if grep -qF -- "$needle" <<<"$haystack"; then
     echo "  FAIL: $description"
     echo "    Expected output NOT to contain: $needle"
     FAILED=$((FAILED + 1))
@@ -53,7 +53,7 @@ assert_render_fails() {
     echo "  FAIL: $description"
     echo "    Expected helm template to fail"
     FAILED=$((FAILED + 1))
-  elif echo "$output" | grep -qF "$needle"; then
+  elif grep -qF -- "$needle" <<<"$output"; then
     echo "  PASS: $description"
     PASSED=$((PASSED + 1))
   else

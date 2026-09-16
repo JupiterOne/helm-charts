@@ -105,7 +105,10 @@ prometheus:
 certmanager:
   enable: false
 
-# [CRD]: Keep the cert-manager Certificate on uninstall (helm.sh/resource-policy: keep)
+# [CRD]: Keep the operator CRDs (IntegrationRunner, IntegrationInstance,
+# IntegrationInstanceJob) and the metrics Certificate on helm uninstall by
+# annotating them helm.sh/resource-policy: keep. Custom resources survive the
+# uninstall; delete the CRDs by hand to remove them.
 crd:
   keep: false
 

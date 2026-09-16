@@ -74,7 +74,7 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `metrics.enable` | Create the metrics Service. Remove `--metrics-bind-address` from `args` when disabling. | `true` |
 | `prometheus.enable` | Create a `ServiceMonitor` for the metrics Service. | `false` |
 | `certmanager.enable` | Issue the metrics serving certificate with cert-manager. | `false` |
-| `crd.keep` | Keep the cert-manager Certificate on uninstall (`helm.sh/resource-policy: keep`). | `false` |
+| `crd.keep` | Annotate the operator CRDs (and the metrics Certificate) with `helm.sh/resource-policy: keep` so `helm uninstall` leaves them, and every `IntegrationRunner`/`IntegrationInstance`/`IntegrationInstanceJob`, in place. | `false` |
 | `networkPolicy.enable` | Create a NetworkPolicy allowing metrics scrapes from namespaces labeled `metrics: enabled`. | `false` |
 | `integration.create` | Create the `kubernetes-managed` integration ServiceAccount, ClusterRole and ClusterRoleBinding. | `true` |
 | `integration.serviceAccountName` | ServiceAccount used by `kubernetes-managed` integration job pods (`K8S_INTEGRATION_SERVICE_ACCOUNT`). | `jupiterone` |
