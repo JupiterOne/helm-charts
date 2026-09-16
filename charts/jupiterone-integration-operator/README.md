@@ -129,7 +129,14 @@ controllerManager:
 **Cross-account ECR.** Grant the job role only `sts:AssumeRole` on the role in
 the registry's account; that role holds the ECR permissions and trusts the job
 role, pinned to the External ID generated when the integration instance is
-saved.
+saved. Several registries means one such role per account and one
+`sts:AssumeRole` resource per target.
+
+This ServiceAccount is shared by every integration job pod in the release, so
+keep its own policy to the `sts:AssumeRole` targets it needs and leave the ECR
+permissions on the assumed roles. Where a workload needs stronger separation,
+install a second operator and runner in their own namespace with their own
+`integration.jobServiceAccount`.
 
 Trust policies, IAM policy documents, and Terraform, Crossplane and
 CloudFormation examples are in the operator repository:
