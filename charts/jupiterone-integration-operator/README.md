@@ -55,6 +55,11 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.imagePullSecrets` | Secrets for pulling images from private registries. Applied to both the operator Deployment and propagated to spawned integration job pods. | `[]` |
 | `controllerManager.disableImageSignatureCheck` | Disable cosign image signature verification for integration job images. Set to `true` when using registries that don't mirror ghcr.io cosign signatures. | `false` |
 | `controllerManager.jobResources` | Resource requests and limits applied to integration job containers. Configure to comply with cluster resource policies (e.g. Kyverno, OPA/Gatekeeper). | `{}` |
+| `controllerManager.serviceAccount.annotations` | Annotations on the operator ServiceAccount. Set the IRSA role here when the operator reads credentials from AWS Secrets Manager. | `{}` |
+| `integration.serviceAccount.annotations` | Annotations on the `kubernetes-managed` integration ServiceAccount. | `{}` |
+| `integration.jobServiceAccount.create` | Create a ServiceAccount for all other integration job pods. | `false` |
+| `integration.jobServiceAccount.name` | Name of that ServiceAccount. Defaults to `jupiterone-integration-job` when created. Set without `create` to reference one managed elsewhere. | `""` |
+| `integration.jobServiceAccount.annotations` | Annotations on the integration job ServiceAccount. Set the IRSA role here to give job pods an AWS identity. | `{}` |
 
 ### Private Registry Example
 
@@ -77,6 +82,62 @@ helm install integration-operator jupiterone/jupiterone-integration-operator \
 ```
 
 > **Note:** `disableImageSignatureCheck` is independent of `imageRegistry`. Cosign verification may work through registry proxies since it resolves signatures against the original source. Only disable it if verification fails in your environment.
+
+### AWS Access for Integration Job Pods (IRSA)
+
+Integration job pods run under the `default` ServiceAccount, which normally has
+no AWS identity. Integrations that call AWS -- for example SBOM for AWS ECR --
+need one. Set `integration.jobServiceAccount` and the chart creates the
+ServiceAccount, annotates it for IRSA, and points the operator at it through
+`INTEGRATION_JOB_SERVICE_ACCOUNT`, so every integration job pod runs with that
+identity.
+
+```yaml
+integration:
+  jobServiceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/jupiterone-integration-job
+```
+
+The `kubernetes-managed` integration keeps its own ServiceAccount (it is bound
+to the in-cluster read ClusterRole) and is annotated separately:
+
+```yaml
+integration:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/jupiterone-kubernetes-managed
+```
+
+The operator itself needs a role only when a CR resolves credentials from AWS
+Secrets Manager:
+
+```yaml
+controllerManager:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/jupiterone-integration-operator
+```
+
+**Same-account ECR.** Grant the job role ECR read directly
+(`ecr:GetAuthorizationToken` on `*`, plus `ecr:BatchGetImage`,
+`ecr:GetDownloadUrlForLayer`, `ecr:BatchCheckLayerAvailability`,
+`ecr:DescribeRepositories`, `ecr:DescribeImages`, `ecr:ListImages`,
+`ecr:ListTagsForResource` on the repository ARNs).
+
+**Cross-account ECR.** Grant the job role only `sts:AssumeRole` on the role in
+the registry's account; that role holds the ECR permissions and trusts the job
+role, pinned to the External ID generated when the integration instance is
+saved.
+
+Trust policies, IAM policy documents, and Terraform, Crossplane and
+CloudFormation examples are in the operator repository:
+[AWS authentication (IRSA)](https://github.com/JupiterOne/jupiterone-integration-operator#aws-authentication-irsa).
+
+Requires the operator release that adds `INTEGRATION_JOB_SERVICE_ACCOUNT`
+(`v0.4.0`). On older operators the env var is ignored and job pods keep using
+the `default` ServiceAccount.
 
 ### Job Resources Example
 

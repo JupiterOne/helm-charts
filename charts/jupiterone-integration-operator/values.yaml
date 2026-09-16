@@ -112,3 +112,28 @@ integration:
   # Service account namespace for the cluster role binding
   # NOTE: We don't support changing this at this time
   serviceAccountNamespace: jupiterone
+  # Annotations applied to the kubernetes-managed integration ServiceAccount
+  # above. Use this to give that integration an AWS identity via IRSA.
+  # Example:
+  #   serviceAccount:
+  #     annotations:
+  #       eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<role-name>
+  serviceAccount:
+    annotations: {}
+  # ServiceAccount used by every other integration job pod (for example SBOM for
+  # AWS ECR). Integration job pods run as "default" until a name is set here,
+  # which is passed to the operator as INTEGRATION_JOB_SERVICE_ACCOUNT.
+  # Annotate it to grant the job pods an AWS identity via IRSA, including
+  # cross-account access where the annotated role assumes a role in the account
+  # that owns the ECR registry.
+  # Example:
+  #   jobServiceAccount:
+  #     create: true
+  #     annotations:
+  #       eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<role-name>
+  jobServiceAccount:
+    # Create the ServiceAccount. Set to false to reference one managed elsewhere.
+    create: false
+    # Defaults to "jupiterone-integration-job" when created.
+    name: ""
+    annotations: {}
