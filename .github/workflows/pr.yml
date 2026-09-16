@@ -5,6 +5,7 @@ on:
     paths:
       - 'charts/jupiterone-integration-operator/**'
       - 'charts/jupiterone-integration-runner/**'
+      - '.github/workflows/pr.yml'
 
 jobs:
   verify-operator-crds:
@@ -18,3 +19,36 @@ jobs:
         run: make verify-crds
         env:
           GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
+
+  chart-tests:
+    name: Chart Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: helm-charts
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint charts
+        run: |
+          helm lint helm-charts/charts/jupiterone-integration-operator
+          helm lint helm-charts/charts/jupiterone-integration-runner \
+            --set accountID=ci --set apiToken=ci
+
+      - name: Run chart render tests
+        run: |
+          set -euo pipefail
+          status=0
+          for script in \
+            helm-charts/charts/jupiterone-integration-operator/tests/declared-values_test.sh \
+            helm-charts/charts/jupiterone-integration-operator/tests/private-registry-values_test.sh \
+            helm-charts/charts/jupiterone-integration-operator/tests/irsa-service-account_test.sh \
+            helm-charts/charts/jupiterone-integration-runner/tests/runner-values_test.sh; do
+            echo "::group::$script"
+            bash "$script" || status=1
+            echo "::endgroup::"
+          done
+          exit "$status"
