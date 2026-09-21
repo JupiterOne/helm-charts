@@ -78,14 +78,18 @@ test_pod_labels() {
   local output
   output=$(helm template test-release "$CHART_DIR" --set controllerManager.pod.labels.team=platform)
 
-  assert_contains "pod label rendered" "team: platform" "$output"
+  assert_contains "pod label rendered (quoted string value)" 'team: "platform"' "$output"
 }
 
 test_name_override() {
   local output
-  output=$(helm template test-release "$CHART_DIR" --set nameOverride=custom-operator)
 
-  assert_contains "labels keep chart name (Chart.Name takes precedence)" "app.kubernetes.io/name: jupiterone-integration-operator" "$output"
+  output=$(helm template test-release "$CHART_DIR" --set nameOverride=custom-operator)
+  assert_contains "nameOverride overrides the app.kubernetes.io/name label" "app.kubernetes.io/name: custom-operator" "$output"
+  assert_not_contains "nameOverride replaces the default chart name" "app.kubernetes.io/name: jupiterone-integration-operator" "$output"
+
+  output=$(helm template test-release "$CHART_DIR")
+  assert_contains "default name label falls back to the chart name" "app.kubernetes.io/name: jupiterone-integration-operator" "$output"
 }
 
 test_operator_service_account_annotations() {

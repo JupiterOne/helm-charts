@@ -1,12 +1,8 @@
 {{- define "chart.name" -}}
-{{- if .Chart }}
-  {{- if .Chart.Name }}
-    {{- .Chart.Name | trunc 63 | trimSuffix "-" }}
-  {{- else if .Values.nameOverride }}
-    {{ .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-  {{- else }}
-    jupiterone-integration-operator
-  {{- end }}
+{{- if .Values.nameOverride }}
+  {{- .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- else if and .Chart .Chart.Name }}
+  {{- .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
   jupiterone-integration-operator
 {{- end }}

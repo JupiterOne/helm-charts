@@ -21,7 +21,7 @@ spec:
         control-plane: controller-manager
         {{- if and .Values.controllerManager.pod .Values.controllerManager.pod.labels }}
         {{- range $key, $value := .Values.controllerManager.pod.labels }}
-        {{ $key }}: {{ $value }}
+        {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
     spec:
