@@ -1,12 +1,8 @@
 {{- define "chart.name" -}}
-{{- if .Chart }}
-  {{- if .Chart.Name }}
-    {{- .Chart.Name | trunc 63 | trimSuffix "-" }}
-  {{- else if .Values.nameOverride }}
-    {{ .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-  {{- else }}
-    jupiterone-integration-operator
-  {{- end }}
+{{- if .Values.nameOverride }}
+  {{- .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- else if and .Chart .Chart.Name }}
+  {{- .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
   jupiterone-integration-operator
 {{- end }}
@@ -48,3 +44,12 @@ app.kubernetes.io/instance: {{ .Release.Name }}
     $hasValidating = true }}{{- end }}
 {{- end }}
 {{ $hasValidating }}}}{{- end }}
+
+
+{{- define "chart.integrationJobServiceAccountName" -}}
+{{- if .Values.integration.jobServiceAccount.name -}}
+{{- .Values.integration.jobServiceAccount.name -}}
+{{- else if .Values.integration.jobServiceAccount.create -}}
+jupiterone-integration-job
+{{- end -}}
+{{- end }}

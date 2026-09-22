@@ -21,7 +21,7 @@ spec:
         control-plane: controller-manager
         {{- if and .Values.controllerManager.pod .Values.controllerManager.pod.labels }}
         {{- range $key, $value := .Values.controllerManager.pod.labels }}
-        {{ $key }}: {{ $value }}
+        {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
     spec:
@@ -45,6 +45,10 @@ spec:
                   fieldPath: metadata.namespace
             - name: K8S_INTEGRATION_SERVICE_ACCOUNT
               value: {{ .Values.integration.serviceAccountName }}
+            {{- with (include "chart.integrationJobServiceAccountName" .) }}
+            - name: INTEGRATION_JOB_SERVICE_ACCOUNT
+              value: {{ . | quote }}
+            {{- end }}
             {{- if .Values.controllerManager.imageRegistry }}
             - name: IMAGE_REGISTRY
               value: {{ .Values.controllerManager.imageRegistry | quote }}
