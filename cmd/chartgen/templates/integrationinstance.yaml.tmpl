@@ -21,16 +21,13 @@ spec:
 {{- if .HasSecretFields }}
   secretRef: {{ "{{ .Values.secretName }}" }}
 {{- end }}
-  config:
 {{- if .ConfigFields }}
+  {{ "{{-" }} if or{{ range .ConfigFields }} .Values.{{ .Key }}{{ end }} {{ "}}" }}
+  config:
 {{- range .ConfigFields }}
     {{ "{{-" }} if .Values.{{ .Key }} {{ "}}" }}
     {{ .Key }}: {{ "{{ .Values." }}{{ .Key }}{{ if eq .Type "string" }} | quote{{ end }}{{ " }}" }}
     {{ "{{-" }} end {{ "}}" }}
 {{- end }}
-    {{ "{{-" }} if not (or{{ range .ConfigFields }} .Values.{{ .Key }}{{ end }}) {{ "}}" }}
-    {}
-    {{ "{{-" }} end {{ "}}" }}
-{{- else }}
-    {}
+  {{ "{{-" }} end {{ "}}" }}
 {{- end }}
