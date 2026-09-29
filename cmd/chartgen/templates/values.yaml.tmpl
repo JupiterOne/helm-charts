@@ -21,6 +21,19 @@ pollingInterval: "ONE_WEEK"
 
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
+{{- if .IngestionSources }}
+
+# Ingestion sources to enable (true) or disable (false), by ID. Unlisted sources
+# use the default shown below. When set, this list replaces ingestion source
+# settings made in the JupiterOne UI whenever it changes. Remove it to return
+# every source to its default. Requires jupiterone-integration-operator
+# {{ .MinOperatorVersion }} or later.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+{{- range .IngestionSources }}
+#   {{ .ID }}: {{ not .DefaultsToDisabled }}  # {{ .Title }}{{ if .CannotBeDisabled }} (cannot be disabled){{ end }}
+{{- end }}
+{{- end }}
 {{- if .HasSecretFields }}
 
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
