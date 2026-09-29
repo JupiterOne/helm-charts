@@ -23,10 +23,15 @@ pollingInterval: "ONE_WEEK"
 # resourceGroupId: "your-resource-group-id"
 {{- if .IngestionSources }}
 
-# Ingestion sources to enable (true) or disable (false), by ID. Unlisted sources
-# use the default shown below. When set, this list replaces ingestion source
-# settings made in the JupiterOne UI whenever it changes. Remove it to return
-# every source to its default. Requires jupiterone-integration-operator
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI whenever it changes. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
 # {{ .MinOperatorVersion }} or later.
 # Example: --set ingestionSources.secrets=false
 ingestionSources: {}
