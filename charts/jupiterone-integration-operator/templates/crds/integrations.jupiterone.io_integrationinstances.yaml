@@ -63,6 +63,17 @@ spec:
                 description: Config to pass to the create integration API (non-sensitive
                   configuration)
                 type: object
+              ingestionSources:
+                additionalProperties:
+                  type: boolean
+                description: |-
+                  IngestionSources enables (true) or disables (false) ingestion sources by ID.
+                  Unlisted sources use the integration definition's default. When set, this map
+                  owns the instance's whole override list: overrides made elsewhere (UI, API) are
+                  replaced on the next change to this field. Leave unset to manage ingestion
+                  sources outside Kubernetes. Unlike other fields, changes are applied to an
+                  existing instance.
+                type: object
               integrationDefinitionName:
                 description: IntegrationDefinitionName is the name of the integration
                   which will map to an integration definition id
@@ -154,6 +165,12 @@ spec:
           status:
             description: IntegrationInstanceStatus defines the observed state of IntegrationInstance.
             properties:
+              appliedIngestionSources:
+                additionalProperties:
+                  type: boolean
+                description: AppliedIngestionSources is the IngestionSources value
+                  last sent to JupiterOne.
+                type: object
               conditions:
                 description: |-
                   INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
