@@ -121,10 +121,16 @@ type IngestionSourceConfig struct {
 // CRD accepts spec.ingestionSources. Older CRDs prune the field silently.
 const minOperatorVersionForIngestionSources = "v0.5.0"
 
+// supportsIngestionSources reports whether the definition has ingestion
+// sources that can be configured per instance.
+func supportsIngestionSources(def IntegrationDefinition) bool {
+	return def.IntegrationPlatformFeatures.SupportsIngestionSourcesConfig && len(def.IngestionSourcesConfig) > 0
+}
+
 // getIngestionSources returns the definition's ingestion sources sorted by ID,
 // or nil when the definition does not support ingestion source configuration.
 func getIngestionSources(def IntegrationDefinition) []IngestionSourceConfig {
-	if !def.IntegrationPlatformFeatures.SupportsIngestionSourcesConfig || len(def.IngestionSourcesConfig) == 0 {
+	if !supportsIngestionSources(def) {
 		return nil
 	}
 	sources := append([]IngestionSourceConfig(nil), def.IngestionSourcesConfig...)
@@ -1271,7 +1277,7 @@ func generateIntegrationInstanceYaml(def IntegrationDefinition) (string, error) 
 		ConfigFields:              getNonMaskedConfigFields(def),
 		HasSecretFields:           hasSecretFields(def),
 		HasAuthSections:           len(def.AuthSections) > 0,
-		SupportsIngestionSources:  getIngestionSources(def) != nil,
+		SupportsIngestionSources:  supportsIngestionSources(def),
 	}
 
 	var buf bytes.Buffer
