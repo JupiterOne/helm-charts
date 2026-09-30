@@ -23,3 +23,12 @@ spec:
     {{- if .Values.disableTlsVerification }}
     disableTlsVerification: {{ .Values.disableTlsVerification }}
     {{- end }}
+    {{- if .Values.ipAddressStatuses }}
+    ipAddressStatuses: {{ .Values.ipAddressStatuses | quote }}
+    {{- end }}
+    {{- if .Values.ipPrefixStatuses }}
+    ipPrefixStatuses: {{ .Values.ipPrefixStatuses | quote }}
+    {{- end }}
+    {{- if not (or .Values.disableTlsVerification .Values.ipAddressStatuses .Values.ipPrefixStatuses) }}
+    {}
+    {{- end }}

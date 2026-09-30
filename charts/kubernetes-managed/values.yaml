@@ -22,6 +22,51 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   certificate-signing-requests: true  # Certificate Signing Requests
+#   cluster-role-bindings: true  # Cluster Role Bindings
+#   cluster-roles: true  # Cluster Roles
+#   clusters: true  # Clusters (cannot be disabled)
+#   config-maps: true  # ConfigMaps
+#   container-specs: false  # Container Specs
+#   containers: true  # Containers
+#   cron-jobs: true  # CronJobs
+#   custom-resources: true  # Custom Resources
+#   daemon-sets: true  # DaemonSets
+#   deployments: true  # Deployments
+#   images: true  # Images
+#   ingresses: true  # Ingresses
+#   jobs: true  # Jobs
+#   namespaces: true  # Namespaces (cannot be disabled)
+#   network-policies: true  # Network Policies
+#   nodes: true  # Nodes
+#   pods: true  # Pods
+#   replica-sets: true  # ReplicaSets
+#   role-bindings: true  # Role Bindings
+#   role-rules: true  # Role Rules
+#   roles: true  # Roles
+#   secrets: true  # Secrets
+#   service-accounts: true  # Service Accounts
+#   services: true  # Services
+#   stateful-sets: true  # StatefulSets
+#   users: true  # Users
+#   volumes: true  # Volumes
+
 # =============================================================================
 # Integration Configuration
 # =============================================================================
@@ -36,6 +81,9 @@ pollingInterval: "ONE_WEEK"
 
 # Enable this if you're running the integration outside of Kubernetes (like on your local machine). Disable this if you're running the integration inside a Kubernetes cluster. When disabled, the integration will use the cluster's built-in authentication.
 # loadKubernetesConfigFromDefault:
+
+# By default only the images in use by a running container are ingested. Enable this to also ingest every image cached on each node, and to relate nodes to the images they hold. Required to ingest images at all when pods are not ingested. Note that kubelet caps the reported list at --node-status-max-images (default 50) per node.
+# ingestAllNodeImages:
 
 # Specify in YAML format the field mapping between Kubernetes Custom Resource Definitions and JupiterOne entities.
 # crdMappingConfig:

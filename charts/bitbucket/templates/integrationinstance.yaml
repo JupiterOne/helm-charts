@@ -18,8 +18,15 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with .Values.ingestionSources }}
+  ingestionSources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
     {{- if .Values.ingestPullRequests }}
     ingestPullRequests: {{ .Values.ingestPullRequests }}
+    {{- end }}
+    {{- if not (or .Values.ingestPullRequests) }}
+    {}
     {{- end }}

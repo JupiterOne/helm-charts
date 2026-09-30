@@ -26,3 +26,6 @@ spec:
     {{- if .Values.userExtensionAttributesToInclude }}
     userExtensionAttributesToInclude: {{ .Values.userExtensionAttributesToInclude }}
     {{- end }}
+    {{- if not (or .Values.pageSize .Values.userExtensionAttributesToInclude) }}
+    {}
+    {{- end }}

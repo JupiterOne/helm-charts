@@ -32,24 +32,21 @@ secretName: "jenkins-secret"
 createSecret: true
 
 # =============================================================================
-# Integration Configuration
-# =============================================================================
-
-# The account's username, used to authenticate with Jenkins.
-userName:
-
-# The Jenkins hostname.
-hostName:
-
-# =============================================================================
 # Sensitive Configuration (stored in Secret)
 # Only used when createSecret is true
 # =============================================================================
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # Basic Auth
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "basicAuth"
+
+  # The account's username, used to authenticate with Jenkins.
+  # userName:
 
   # The API token generated from Dashboard -> Configure ('New API Token').
-  apiKey:
+  # apiKey:
+
+  # The Jenkins hostname.
+  # hostName:

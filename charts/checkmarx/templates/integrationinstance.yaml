@@ -20,9 +20,4 @@ spec:
   {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.clientUsername }}
-    clientUsername: {{ .Values.clientUsername }}
-    {{- end }}
-    {{- if .Values.instanceHostname }}
-    instanceHostname: {{ .Values.instanceHostname }}
-    {{- end }}
+    {}

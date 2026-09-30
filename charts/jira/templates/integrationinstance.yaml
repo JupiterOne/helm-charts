@@ -18,6 +18,10 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with .Values.ingestionSources }}
+  ingestionSources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
     {{- if .Values.redactIssueDescriptions }}
@@ -25,4 +29,13 @@ spec:
     {{- end }}
     {{- if .Values.customFields }}
     customFields: {{ .Values.customFields }}
+    {{- end }}
+    {{- if .Values.userAccountTypes }}
+    userAccountTypes: {{ .Values.userAccountTypes }}
+    {{- end }}
+    {{- if .Values.assetsMapping }}
+    assetsMapping: {{ .Values.assetsMapping }}
+    {{- end }}
+    {{- if not (or .Values.redactIssueDescriptions .Values.customFields .Values.userAccountTypes .Values.assetsMapping) }}
+    {}
     {{- end }}

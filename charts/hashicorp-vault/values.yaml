@@ -22,6 +22,24 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   oidc-identities: true  # OIDC Identities
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -35,11 +53,11 @@ createSecret: true
 # Integration Configuration
 # =============================================================================
 
-# The HashiCorp Vault cluster hostname/URL.
-hostname:
+# Comma-separated list of KV v2 custom_metadata keys to ingest as customMetadata.<key> properties on secret entities (e.g. 'expires,expiration_date,type,team'). Leave empty to ingest none.
+# customMetadataKeys:
 
-# The HashiCorp Vault namespace.
-namespace:
+# When enabled, reads each KV/cubbyhole secret value to detect embedded PEM X.509 certificates and records their SHA-256 (DER) fingerprints on the secret entity. Requires the Vault token to have 'read' on the secret data path. Off by default.
+# hashCertificates:
 
 # =============================================================================
 # Sensitive Configuration (stored in Secret)
@@ -48,8 +66,64 @@ namespace:
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # API Token
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "apiToken"
 
-  # The HashiCorp Vault token used for signing into cluster.
-  token:
+  # The HashiCorp Vault cluster hostname/URL.
+  # hostname:
+
+  # The HashiCorp Vault namespace.
+  # namespace:
+
+  # The HashiCorp Vault token used for signing into the cluster.
+  # token:
+
+  # ---------------------------------------------------------------------------
+  # OIDC (Azure Entra ID)
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "oidc"
+
+  # The HashiCorp Vault cluster hostname/URL.
+  # hostname:
+
+  # The HashiCorp Vault namespace.
+  # namespace:
+
+  # Azure Entra tenant ID.
+  # entraTenantId:
+
+  # App registration (client) ID.
+  # entraClientId:
+
+  # Client secret value for the Entra app registration.
+  # entraClientSecret:
+
+  # Name of the role on the Vault JWT/OIDC auth method to log in as.
+  # vaultOidcRole:
+
+  # Auth mount path for the JWT/OIDC method (e.g. 'oidc', 'jwt', 'entra'). Defaults to 'oidc'.
+  # vaultOidcMountPath: "oidc"
+
+  # Audience value the Vault role expects in the JWT 'aud' claim. Falls back to the Entra Client ID when omitted.
+  # vaultAudience:
+
+  # ---------------------------------------------------------------------------
+  # AppRole (Role ID + Secret ID)
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "approle"
+
+  # The HashiCorp Vault cluster hostname/URL.
+  # hostname:
+
+  # The HashiCorp Vault namespace. The AppRole login is also sent to this namespace, so the AppRole auth mount must live in it.
+  # namespace:
+
+  # The RoleID of the Vault AppRole to log in as.
+  # vaultRoleId:
+
+  # A SecretID issued for that AppRole. Rotate it in Vault and update it here as your SecretID TTL requires.
+  # vaultSecretId:
+
+  # Auth mount path for the AppRole method, without the 'auth/' prefix (e.g. 'approle'). Defaults to 'approle'.
+  # vaultAppRoleMountPath: "approle"

@@ -22,6 +22,30 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   asset-target-relationships: false  # Build Asset Target Relationships
+#   assets: false  # Jira Assets (CMDB)
+#   issue-links: true  # Build Jira Issue Links
+#   issues: true  # Jira Issues
+#   projects: true  # Jira Projects
+#   user-owns-asset: false  # Build User Owns Asset Relationships
+#   users: true  # Jira Users
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -42,6 +66,15 @@ createSecret: true
 # Example: justification,10420,customfield_10210
 # customFields:
 
+# The Atlassian account types to ingest as jira_user entities. Deselect Customer to skip Jira Service Management portal requesters, which on a help desk can vastly outnumber licensed users.
+# Deselecting a type also drops the created / reported / assigned relationships between those users and jira_issue entities.
+# Options: atlassian, app, customer, unknown
+# userAccountTypes:
+
+# Optional. This same Jira integration can also ingest your Jira Service Management Assets (CMDB) objects, such as laptops, servers and applications, and link them to their owners. Upload a JSON file that lists which Asset object types to ingest and how to map their attributes to entity properties. Leave empty to skip Assets ingestion.
+# The JSON file needs an objectTypes array defining _class and propertyToAttributeMap for each asset type. OAuth requires the scopes read:cmdb-object:jira, read:cmdb-attribute:jira, read:cmdb-schema:jira, read:cmdb-type:jira. Mapping guide and examples: https://docs.jupiterone.io/integrations/directory/jira#assets-cmdb-configuration
+# assetsMapping:
+
 # =============================================================================
 # Sensitive Configuration (stored in Secret)
 # Only used when createSecret is true
@@ -51,7 +84,7 @@ secret:
   # ---------------------------------------------------------------------------
   # Basic
   # ---------------------------------------------------------------------------
-  # selectedAuthType: ""
+  # selectedAuthType: "apiToken"
 
   # The Jira hostname or URL for your organization.
   # Example: example.atlassian.net or https://example.domain.com/jira
@@ -64,6 +97,25 @@ secret:
   # An API key is necessary when passwords require MFA
   # jiraPassword:
 
-  # The project keys that this integration will ingest issues from. Separate project keys with commas.
-  # Example: SECOPS,JPT
+  # The keys of the Jira projects to ingest issues from, as shown in Jira. Separate project keys with commas. If a project is deleted, renamed or no longer visible to the integration user, remove or update its key here, otherwise the run fails validation.
+  # Example: SECOPS,JPT. Troubleshooting: https://docs.jupiterone.io/integrations/directory/jira#invalid-project-keys
+  # projects:
+
+  # ---------------------------------------------------------------------------
+  # OAuth 2.0 (Service account)
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "oauth"
+
+  # The Jira hostname or URL for your organization.
+  # Example: example.atlassian.net or https://example.domain.com/jira
+  # jiraHost:
+
+  # The Client ID of the OAuth 2.0 service account credential.
+  # clientId:
+
+  # The Client Secret of the OAuth 2.0 service account credential.
+  # clientSecret:
+
+  # The keys of the Jira projects to ingest issues from, as shown in Jira. Separate project keys with commas. If a project is deleted, renamed or no longer visible to the integration user, remove or update its key here, otherwise the run fails validation.
+  # Example: SECOPS,JPT. Troubleshooting: https://docs.jupiterone.io/integrations/directory/jira#invalid-project-keys
   # projects:

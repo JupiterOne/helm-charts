@@ -32,28 +32,25 @@ secretName: "cbdefense-secret"
 createSecret: true
 
 # =============================================================================
-# Integration Configuration
-# =============================================================================
-
-# If present, the part immediately following `defense-` in the Carbon Black Cloud Console URL.
-# Example: `prod05` in `https://defense-prod05.conferdeploy.net/`
-# site:
-
-# The Org Key, found in the Carbon Black Cloud Console (Settings > API Access).
-orgKey:
-
-# The ID of the API Key configured for JupiterOne in the Carbon Black Cloud Console (Settings > API Access > API Keys).
-connectorId:
-
-# =============================================================================
 # Sensitive Configuration (stored in Secret)
 # Only used when createSecret is true
 # =============================================================================
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # API Key
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "apiKey"
+
+  # If present, the part immediately following `defense-` in the Carbon Black Cloud Console URL.
+  # Example: `prod05` in `https://defense-prod05.conferdeploy.net/`
+  # site:
+
+  # The Org Key, found in the Carbon Black Cloud Console (Settings > API Access).
+  # orgKey:
+
+  # The ID of the API Key configured for JupiterOne in the Carbon Black Cloud Console (Settings > API Access > API Keys).
+  # connectorId:
 
   # The API Key configured for JupiterOne in the Carbon Black Cloud Console (Settings > API Access > API Keys).
-  apiKey:
+  # apiKey:

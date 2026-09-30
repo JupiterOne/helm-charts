@@ -20,9 +20,4 @@ spec:
   {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.userName }}
-    userName: {{ .Values.userName }}
-    {{- end }}
-    {{- if .Values.hostName }}
-    hostName: {{ .Values.hostName }}
-    {{- end }}
+    {}

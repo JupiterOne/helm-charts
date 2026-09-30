@@ -22,6 +22,29 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   catalogs: true  # Catalogs
+#   environments: true  # Environments
+#   factsets: true  # Factsets
+#   nodes: true  # Nodes
+#   resources: true  # Resources
+#   servers: true  # Servers
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -30,6 +53,14 @@ secretName: "puppet-secret"
 # Whether to create the secret for sensitive configuration
 # Set to false if you want to manage the secret externally
 createSecret: true
+
+# =============================================================================
+# Integration Configuration
+# =============================================================================
+
+# Select which puppet_resource types to ingest. Leave empty to ingest all resource types, including any custom module-defined types not listed here (e.g. Firewall, Apache::Vhost).
+# Options: Package, Service, User, Group, File, Cron, Exec, Ssh_authorized_key, Mount, Host, Yumrepo, Scheduled_task, Selboolean, Selmodule, Augeas
+# resourceTypes:
 
 # =============================================================================
 # Sensitive Configuration (stored in Secret)

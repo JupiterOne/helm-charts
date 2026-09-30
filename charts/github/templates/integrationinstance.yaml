@@ -18,6 +18,10 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with .Values.ingestionSources }}
+  ingestionSources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
     {{- if .Values.installationId }}
@@ -28,6 +32,9 @@ spec:
     {{- end }}
     {{- if .Values.issuesIngestSinceDays }}
     issuesIngestSinceDays: {{ .Values.issuesIngestSinceDays }}
+    {{- end }}
+    {{- if .Values.commitActivitySinceDays }}
+    commitActivitySinceDays: {{ .Values.commitActivitySinceDays }}
     {{- end }}
     {{- if .Values.collaboratorsBatchSize }}
     collaboratorsBatchSize: {{ .Values.collaboratorsBatchSize }}
@@ -43,4 +50,7 @@ spec:
     {{- end }}
     {{- if .Values.ingestGenericSecretAlerts }}
     ingestGenericSecretAlerts: {{ .Values.ingestGenericSecretAlerts }}
+    {{- end }}
+    {{- if not (or .Values.installationId .Values.pullRequestIngestSinceDays .Values.issuesIngestSinceDays .Values.commitActivitySinceDays .Values.collaboratorsBatchSize .Values.repositoryMaxSearchLimit .Values.dependabotAlertStates .Values.dependabotAlertSeverities .Values.ingestGenericSecretAlerts) }}
+    {}
     {{- end }}

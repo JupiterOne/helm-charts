@@ -22,6 +22,47 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   apps: true  # GitHub Applications
+#   branch-protection-rules: true  # GitHub Branch Protection Rules
+#   code-scanning-alerts: true  # GitHub Code Scanning Alerts
+#   codeowners: false  # GitHub CODEOWNERS
+#   collaborators: true  # GitHub Collaborators
+#   container-images: false  # GitHub Container Images
+#   credential-authorizations: false  # GitHub Credential Authorizations
+#   env-secrets: true  # GitHub Environment Secrets
+#   environments: true  # GitHub Environments
+#   issues: true  # GitHub Repository Issues
+#   org-role-teams: false  # GitHub Organization Role Teams
+#   org-role-users: false  # GitHub Organization Role Users
+#   org-roles: false  # GitHub Organization Roles
+#   org-secrets: true  # GitHub Organization Secrets
+#   org-webhooks: false  # GitHub Organization Webhooks
+#   packages: false  # GitHub Packages
+#   prs: true  # GitHub Pull Requests
+#   repo-secrets: true  # GitHub Repository Secrets
+#   repo-webhooks: false  # GitHub Repository Webhooks
+#   rulesets: false  # GitHub Rulesets
+#   secret-scanning-alerts: false  # GitHub Secret Scanning Alerts
+#   user-committed-to-repo: false  # GitHub User Commit Activity
+#   user-updated-pullrequest: false  # User Updated Pull Requests Relationships
+#   vulnerability-alerts: false  # GitHub Dependabot Vulnerability Alerts
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -46,6 +87,10 @@ createSecret: true
 # Specify the ingestion window for updated issues (days ago)
 # Options: 90, 180, 275, 365
 # issuesIngestSinceDays: "90"
+
+# Specify the ingestion window for user commit activity on the default branch (days ago). Only applies when the 'GitHub User Commit Activity' ingestion source is enabled.
+# Options: 90, 180, 275, 365
+# commitActivitySinceDays: "90"
 
 # The batch size to use for the Fetch Collaborators step.
 # collaboratorsBatchSize:
@@ -87,6 +132,17 @@ secret:
   # organization:
 
   # The Enterprise Owner's Personal Access Token (classic) to use for authentication.
+  # enterpriseToken:
+
+  # ---------------------------------------------------------------------------
+  # Github Cloud (Fine-grained PAT)
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "githubFineGrainedToken"
+
+  # The name of the organization from which to ingest data. It can be found in the URL when you navigate to your organization's page (https://github.com/<your organization name>).
+  # organization:
+
+  # A fine-grained personal access token with read access to the organization's resources. The token's resource owner must be the organization being ingested.
   # enterpriseToken:
 
   # ---------------------------------------------------------------------------
