@@ -34,9 +34,9 @@ pollingInterval: "ONE_WEEK"
 # setting you want to keep. Set it back to {} to return every source to the
 # integration's default. Requires jupiterone-integration-operator
 # {{ .MinOperatorVersion }} or later.
-# Keep this in a values file (-f). A helm upgrade that does not pass it again
-# (and does not use --reuse-values) resets it to {}, which returns every
-# source to the integration's default.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
 # Example: --set ingestionSources.secrets=false
 ingestionSources: {}
 {{- range .IngestionSources }}
