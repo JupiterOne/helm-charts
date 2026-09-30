@@ -18,6 +18,10 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with .Values.ingestionSources }}
+  ingestionSources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
     {{- if .Values.vulnerabilitySeverities }}
@@ -25,4 +29,7 @@ spec:
     {{- end }}
     {{- if .Values.vulnerabilityStates }}
     vulnerabilityStates: {{ .Values.vulnerabilityStates }}
+    {{- end }}
+    {{- if not (or .Values.vulnerabilitySeverities .Values.vulnerabilityStates) }}
+    {}
     {{- end }}

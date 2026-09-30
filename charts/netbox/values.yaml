@@ -38,6 +38,14 @@ createSecret: true
 # Disables TLS certificate verification. NOT RECOMMENDED! Please install a valid TLS certificate on your Netbox server.
 # disableTlsVerification:
 
+# Select which IP address statuses to ingest. If none selected, only active addresses will be ingested.
+# Options: active, reserved, deprecated, dhcp, slaac
+# ipAddressStatuses:
+
+# Select which IP prefix statuses to ingest. If none selected, only active prefixes will be ingested.
+# Options: active, reserved, deprecated
+# ipPrefixStatuses:
+
 # =============================================================================
 # Sensitive Configuration (stored in Secret)
 # Only used when createSecret is true

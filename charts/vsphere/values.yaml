@@ -35,17 +35,8 @@ createSecret: true
 # Integration Configuration
 # =============================================================================
 
-# The vSphere Domain (e.g. 'vcenter.sddc-X-YY-ZZ-F.vmwarevmc.com' if hosted on VMware Cloud)
-domain:
-
-# The vCenter Login/Email.
-login:
-
 # Configuration that specifies whether the integration utilizes VMware NSX (Network Virtualization Platform) features.
 # usesNsx:
-
-# Disabling TLS certificate verification. NOT RECOMMENDED: If possible, please install valid TLS certificates.
-# disableTlsVerification:
 
 # =============================================================================
 # Sensitive Configuration (stored in Secret)
@@ -54,8 +45,18 @@ login:
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # Basic Auth
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "basicAuth"
+
+  # The vSphere Domain (e.g. 'vcenter.sddc-X-YY-ZZ-F.vmwarevmc.com' if hosted on VMware Cloud)
+  # domain:
+
+  # The vCenter Login/Email.
+  # login:
 
   # The vCenter Password
-  password:
+  # password:
+
+  # Disabling TLS certificate verification. NOT RECOMMENDED: If possible, please install valid TLS certificates.
+  # disableTlsVerification:

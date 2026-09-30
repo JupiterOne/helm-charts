@@ -22,6 +22,27 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   findings: true  # Users
+#   projects: true  # Projects
+#   user-groups: true  # User Groups
+#   users: true  # Users
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -34,10 +55,6 @@ createSecret: true
 # =============================================================================
 # Integration Configuration
 # =============================================================================
-
-# The base url of your SonarQube instance.
-# Example URL: https://example.com
-baseUrl:
 
 # Limit the ingestion of findings based on specified severities. You can specify one or more severities. The values in parentheses correspond to severities in SonarQube version 10.4 and above.
 # Options: INFO, MINOR, MAJOR, CRITICAL, BLOCKER
@@ -62,8 +79,13 @@ baseUrl:
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # API Token
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "apiToken"
+
+  # The base url of your SonarQube instance.
+  # Example URL: https://example.com
+  # baseUrl:
 
   # The API token used to authenticate with SonarQube.
-  apiToken:
+  # apiToken:

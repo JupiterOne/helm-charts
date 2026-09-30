@@ -20,3 +20,4 @@ spec:
   {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
+    {}

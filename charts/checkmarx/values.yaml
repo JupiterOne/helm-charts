@@ -32,25 +32,22 @@ secretName: "checkmarx-secret"
 createSecret: true
 
 # =============================================================================
-# Integration Configuration
-# =============================================================================
-
-# Username of the Checkmarx user to authenticate with
-clientUsername:
-
-# Hostname of the Checkmarx instance
-# Example: 'cxprivatecloud'
-instanceHostname:
-
-# =============================================================================
 # Sensitive Configuration (stored in Secret)
 # Only used when createSecret is true
 # =============================================================================
 secret:
 
   # ---------------------------------------------------------------------------
-  # Credentials
+  # Basic
   # ---------------------------------------------------------------------------
+  # selectedAuthType: "basic"
+
+  # Username of the Checkmarx user to authenticate with
+  # clientUsername:
 
   # Password of the Checkmarx user to authenticate with
-  clientPassword:
+  # clientPassword:
+
+  # Hostname of the Checkmarx instance
+  # Example: 'cxprivatecloud'
+  # instanceHostname:

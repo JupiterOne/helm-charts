@@ -22,6 +22,38 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   approval-rules: false  # Approval Rules
+#   branch-rules: true  # Branch Rules
+#   ci-cd-variables: false  # CI/CD Variables
+#   ci-jobs: false  # CI Jobs
+#   commits: true  # Commits
+#   findings: true  # Findings
+#   groups: true  # Groups
+#   merge-requests: true  # Merge Requests
+#   pipelines: false  # Pipelines
+#   project-config: false  # Project Configuration
+#   project-labels: true  # Project Labels
+#   project-push-rules: false  # Project Push Rules
+#   projects: true  # Projects
+#   protected-branches: false  # Protected Branches
+#   users: true  # Users
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -34,10 +66,6 @@ createSecret: true
 # =============================================================================
 # Integration Configuration
 # =============================================================================
-
-# The GitLab API base URL.
-# Example: https://gitlab.com or your self-managed instance URL.
-baseUrl:
 
 # Select vulnerability severities to ingest
 # Options: info, low, medium, high, critical
@@ -54,6 +82,10 @@ baseUrl:
 # Specify the ingestion window for updated merge requests (days ago)
 # Options: 90, 180, 275, 365
 # mergeRequestIngestSinceDays: "90"
+
+# Specify the ingestion window for updated pipelines (days ago)
+# Options: 7, 30, 90, 180, 365
+# pipelineIngestSinceDays: "90"
 
 # When enabled, the 'Fetch Users' step will skip all bot accounts, including project and group bots
 # ingestRegularUsersOnly:
@@ -80,8 +112,17 @@ secret:
   # Credentials
   # ---------------------------------------------------------------------------
 
-  # An access token configured for read access
-  personalToken:
-
   # Optional Access token for findings added for known issue: https://gitlab.com/gitlab-org/gitlab/-/issues/542815.
   # findingsIngestionToken:
+
+  # ---------------------------------------------------------------------------
+  # PAT
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "pat"
+
+  # An access token configured for read access
+  # personalToken:
+
+  # The GitLab API base URL.
+  # Example: https://gitlab.com or your self-managed instance URL.
+  # baseUrl:

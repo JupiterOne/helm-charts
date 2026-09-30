@@ -22,6 +22,33 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Ingestion sources to enable (true) or disable (false), by ID. To set them,
+# replace {} with the entries you need, one per line, indented under
+# ingestionSources:, for example:
+#   ingestionSources:
+#     secrets: false
+# Unlisted sources use the integration's default, shown in the list below.
+# When set, this map replaces ingestion source settings made in the JupiterOne
+# UI and account-level defaults whenever it changes, so list every non-default
+# setting you want to keep. Set it back to {} to return every source to the
+# integration's default. Requires jupiterone-integration-operator
+# v0.5.0 or later.
+# Keep this in a values file (-f). A helm upgrade that passes other values
+# (-f or --set) but not this one resets it to {}, which returns every source
+# to the integration's default, unless the upgrade uses --reuse-values.
+# Example: --set ingestionSources.secrets=false
+ingestionSources: {}
+#   access_tokens: true  # Access Tokens
+#   artifacts: true  # Artifacts
+#   builds: true  # Builds
+#   groups: true  # Groups
+#   permissions: true  # Permissions
+#   pipeline_sources: true  # Pipeline Sources
+#   repositories: true  # Repositories
+#   repository_groups: true  # Repository Groups
+#   users: true  # Users
+#   vulnerabilities: false  # Vulnerabilities
+
 # Name of the Secret containing sensitive configuration (credentials, API keys, etc.)
 # If createSecret is true, this secret will be created by the chart.
 # If createSecret is false, you must create this secret externally.
@@ -35,12 +62,6 @@ createSecret: true
 # Integration Configuration
 # =============================================================================
 
-# The baseUrl to use for request. Ex. https://<namespace>.jfrog.io
-baseUrl:
-
-# The username of the administrator that granted the Artifactory access tokens.
-# clientAdminName:
-
 # Enable ingestion of Artifactory Pipelines.
 # enablePipelineIngestion:
 
@@ -49,7 +70,7 @@ baseUrl:
 # vulnerabilitySeverities:
 
 # Ingest artifacts created within the last X days
-# Options: 30, 60, 90, 365
+# Options: 30, 60, 90, 365, all
 # artifactsIngestSinceDays: "30"
 
 # A comma-separated list of repositories from which artifacts will be ingested. Artifacts from repositories not on this list will be excluded.
@@ -66,8 +87,19 @@ secret:
   # Credentials
   # ---------------------------------------------------------------------------
 
-  # An 'Artifactory' access token. See <namespace>.jfrog.io/ui/admin/configuration/security/access_tokens.
-  clientAccessToken:
-
   # A 'Pipelines' access token. See <namespace>.jfrog.io/ui/admin/configuration/security/access_tokens.
   clientPipelineAccessToken:
+
+  # ---------------------------------------------------------------------------
+  # API Token
+  # ---------------------------------------------------------------------------
+  # selectedAuthType: "apiToken"
+
+  # The baseUrl to use for request. Ex. https://<namespace>.jfrog.io
+  # baseUrl:
+
+  # An 'Artifactory' access token. See <namespace>.jfrog.io/ui/admin/configuration/security/access_tokens.
+  # clientAccessToken:
+
+  # The username of the administrator that granted the Artifactory access tokens.
+  # clientAdminName:

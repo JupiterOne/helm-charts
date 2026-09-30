@@ -20,12 +20,4 @@ spec:
   {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.site }}
-    site: {{ .Values.site }}
-    {{- end }}
-    {{- if .Values.orgKey }}
-    orgKey: {{ .Values.orgKey }}
-    {{- end }}
-    {{- if .Values.connectorId }}
-    connectorId: {{ .Values.connectorId }}
-    {{- end }}
+    {}

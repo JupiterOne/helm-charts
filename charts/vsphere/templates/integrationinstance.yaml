@@ -20,15 +20,9 @@ spec:
   {{- end }}
   secretRef: {{ .Values.secretName }}
   config:
-    {{- if .Values.domain }}
-    domain: {{ .Values.domain }}
-    {{- end }}
-    {{- if .Values.login }}
-    login: {{ .Values.login }}
-    {{- end }}
     {{- if .Values.usesNsx }}
     usesNsx: {{ .Values.usesNsx }}
     {{- end }}
-    {{- if .Values.disableTlsVerification }}
-    disableTlsVerification: {{ .Values.disableTlsVerification }}
+    {{- if not (or .Values.usesNsx) }}
+    {}
     {{- end }}

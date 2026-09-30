@@ -51,7 +51,7 @@ secret:
   # Credentials
   # ---------------------------------------------------------------------------
 
-  # CA Certificate file (optional, for TLS/SSL connections)
+  # CA Certificate file (optional, required for ldaps:// when the domain controller certificate was issued by an internal certificate authority). Provide the issuing authority and any certificates above it in its chain as a single PEM file.
   # caCertificate:
 
   # Client Certificate file (optional, for mutual TLS authentication)
@@ -65,7 +65,7 @@ secret:
   # ---------------------------------------------------------------------------
   # selectedAuthType: "ldap"
 
-  # Microsoft Active Directory LDAP Server URL.
+  # Microsoft Active Directory LDAP Server URL, such as ldaps://dc01.corp.example.com (port 636) or ldap://dc01.corp.example.com (port 389). Use the fully qualified domain name that appears in the domain controller certificate, not an IP address.
   # ldapUrl:
 
   # Microsoft Active Directory Base DN.
