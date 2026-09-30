@@ -48,6 +48,50 @@ type GraphQLResponse struct {
 
 type GraphQLError struct {
 	Message string `json:"message"`
+	Path    []any  `json:"path,omitempty"`
+}
+
+// ingestionSourcesErrorIndex reports whether e is an error resolving one
+// listed definition's ingestionSourcesConfig, and that definition's index in
+// the page. The field is nullable, so the rest of the page is still returned.
+func ingestionSourcesErrorIndex(e GraphQLError) (int, bool) {
+	if len(e.Path) != 4 || e.Path[1] != "definitions" || e.Path[3] != "ingestionSourcesConfig" {
+		return 0, false
+	}
+	i, ok := e.Path[2].(float64)
+	return int(i), ok
+}
+
+// usableDefinitions returns the page's definitions, leaving out those whose
+// ingestionSourcesConfig could not be read, so their charts are left as they
+// are instead of being regenerated without ingestion sources. Any other
+// GraphQL error fails the page.
+func usableDefinitions(resp GraphQLResponse) ([]IntegrationDefinition, error) {
+	definitions := resp.Data.IntegrationDefinitions.Definitions
+	broken := map[int]string{}
+	var fatal []GraphQLError
+	for _, e := range resp.Errors {
+		if i, ok := ingestionSourcesErrorIndex(e); ok && i < len(definitions) {
+			broken[i] = e.Message
+			continue
+		}
+		fatal = append(fatal, e)
+	}
+	if len(fatal) > 0 {
+		return nil, fmt.Errorf("GraphQL errors: %v", fatal)
+	}
+
+	usable := make([]IntegrationDefinition, 0, len(definitions))
+	for i, def := range definitions {
+		if message, ok := broken[i]; ok {
+			if shouldGenerateChart(def) {
+				fmt.Fprintf(os.Stderr, "Warning: skipping chart for %s: failed to read its ingestion sources: %s\n", def.Name, message)
+			}
+			continue
+		}
+		usable = append(usable, def)
+	}
+	return usable, nil
 }
 
 type IntegrationDefinitionsData struct {
@@ -466,11 +510,12 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
 			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 
-		if len(graphqlResp.Errors) > 0 {
-			return nil, fmt.Errorf("GraphQL errors: %v", graphqlResp.Errors)
+		definitions, err := usableDefinitions(graphqlResp)
+		if err != nil {
+			return nil, err
 		}
 
-		allDefinitions = append(allDefinitions, graphqlResp.Data.IntegrationDefinitions.Definitions...)
+		allDefinitions = append(allDefinitions, definitions...)
 
 		if !graphqlResp.Data.IntegrationDefinitions.PageInfo.HasNextPage {
 			break
