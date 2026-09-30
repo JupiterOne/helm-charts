@@ -47,6 +47,7 @@ func TestValuesYaml_ListsIngestionSources(t *testing.T) {
 	}
 	for _, want := range []string{
 		"# replace {} with the entries you need",
+		"# Keep this in a values file (-f).",
 		"#   ingestionSources:\n#     secrets: false\n",
 		"ingestionSources: {}",
 		"#   clusters: true  # Clusters (cannot be disabled)",

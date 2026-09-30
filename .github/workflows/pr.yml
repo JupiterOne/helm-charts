@@ -48,3 +48,22 @@ jobs:
             echo "::endgroup::"
           done
           exit "$status"
+
+  chartgen-tests:
+    name: chartgen Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # The render tests run `helm template` and skip without helm.
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Run chartgen tests
+        run: go test ./cmd/chartgen/...
