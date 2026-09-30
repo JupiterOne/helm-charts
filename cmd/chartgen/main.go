@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -67,11 +68,13 @@ type IntegrationDefinition struct {
 	ConfigFields                []ConfigField               `json:"configFields"`
 	ConfigSections              []ConfigSection             `json:"configSections"`
 	AuthSections                []AuthSection               `json:"authSections"`
+	IngestionSourcesConfig      []IngestionSourceConfig     `json:"ingestionSourcesConfig"`
 }
 
 type IntegrationPlatformFeatures struct {
-	SupportsCollectors bool     `json:"supportsCollectors"`
-	ExecutionTarget    []string `json:"executionTarget"`
+	SupportsCollectors             bool     `json:"supportsCollectors"`
+	ExecutionTarget                []string `json:"executionTarget"`
+	SupportsIngestionSourcesConfig bool     `json:"supportsIngestionSourcesConfig"`
 }
 
 type ConfigField struct {
@@ -104,6 +107,35 @@ type AuthSection struct {
 	Description          string        `json:"description"`
 	ConfigFields         []ConfigField `json:"configFields"`
 	VerificationDisabled bool          `json:"verificationDisabled"`
+}
+
+// IngestionSourceConfig is one ingestion source an integration exposes.
+type IngestionSourceConfig struct {
+	ID                 string `json:"id"`
+	Title              string `json:"title"`
+	DefaultsToDisabled bool   `json:"defaultsToDisabled"`
+	CannotBeDisabled   bool   `json:"cannotBeDisabled"`
+}
+
+// minOperatorVersionForIngestionSources is the first operator release whose
+// CRD accepts spec.ingestionSources. Older CRDs prune the field silently.
+const minOperatorVersionForIngestionSources = "v0.5.0"
+
+// supportsIngestionSources reports whether the definition has ingestion
+// sources that can be configured per instance.
+func supportsIngestionSources(def IntegrationDefinition) bool {
+	return def.IntegrationPlatformFeatures.SupportsIngestionSourcesConfig && len(def.IngestionSourcesConfig) > 0
+}
+
+// getIngestionSources returns the definition's ingestion sources sorted by ID,
+// or nil when the definition does not support ingestion source configuration.
+func getIngestionSources(def IntegrationDefinition) []IngestionSourceConfig {
+	if !supportsIngestionSources(def) {
+		return nil
+	}
+	sources := append([]IngestionSourceConfig(nil), def.IngestionSourcesConfig...)
+	sort.Slice(sources, func(i, j int) bool { return sources[i].ID < sources[j].ID })
+	return sources
 }
 
 type PageInfo struct {
@@ -228,6 +260,13 @@ func fetchAllIntegrationDefinitions() ([]IntegrationDefinition, error) {
         integrationPlatformFeatures {
           supportsCollectors
           executionTarget
+          supportsIngestionSourcesConfig
+        }
+        ingestionSourcesConfig {
+          id
+          title
+          defaultsToDisabled
+          cannotBeDisabled
         }
         configFields {
           key
@@ -454,6 +493,13 @@ func fetchIntegrationByName(name string) (*IntegrationDefinition, error) {
       integrationPlatformFeatures {
         supportsCollectors
         executionTarget
+        supportsIngestionSourcesConfig
+      }
+      ingestionSourcesConfig {
+        id
+        title
+        defaultsToDisabled
+        cannotBeDisabled
       }
       configFields {
         key
@@ -1138,8 +1184,12 @@ func generateValuesYaml(def IntegrationDefinition) (string, error) {
 		MaskedConfigFields        []ConfigField
 		AuthSections              []AuthSection
 		HasSecretFields           bool
+		IngestionSources          []IngestionSourceConfig
+		MinOperatorVersion        string
 	}{
 		IntegrationDefinitionName: def.Name,
+		IngestionSources:          getIngestionSources(def),
+		MinOperatorVersion:        minOperatorVersionForIngestionSources,
 		ConfigFields:              getNonMaskedConfigFields(def),
 		MaskedConfigFields:        getMaskedConfigFields(def),
 		AuthSections:              getFlattenedAuthSections(def),
@@ -1221,11 +1271,13 @@ func generateIntegrationInstanceYaml(def IntegrationDefinition) (string, error) 
 		ConfigFields              []ConfigField
 		HasSecretFields           bool
 		HasAuthSections           bool
+		SupportsIngestionSources  bool
 	}{
 		IntegrationDefinitionName: def.Name,
 		ConfigFields:              getNonMaskedConfigFields(def),
 		HasSecretFields:           hasSecretFields(def),
 		HasAuthSections:           len(def.AuthSections) > 0,
+		SupportsIngestionSources:  supportsIngestionSources(def),
 	}
 
 	var buf bytes.Buffer
