@@ -1,6 +1,27 @@
 apiVersion: v1
 entries:
+  air-lock-digital:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:10.354281465Z"
+    description: A Helm chart for the JupiterOne AirLock Digital Integration
+    digest: ff39249ba9a86e89264ecfabee634aff4f64e91c5c4c25f091fd9ef6ea5db5e5
+    name: air-lock-digital
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/air-lock-digital-1.0.1/air-lock-digital-1.0.1.tgz
+    version: 1.0.1
   artifactory:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:10.512468359Z"
+    description: A Helm chart for the JupiterOne Artifactory Integration
+    digest: becbeab6fa7fbc6271208263512cb987795f4eac757c47c4641cd94bfad67b67
+    name: artifactory
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/artifactory-1.0.5/artifactory-1.0.5.tgz
+    version: 1.0.5
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:29:43.536814395Z"
@@ -24,6 +45,16 @@ entries:
   bitbucket:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:10.697876517Z"
+    description: A Helm chart for the JupiterOne Bitbucket Integration
+    digest: 411b924e2f26639ffa4d5fa260bbb4e8da0fa1f3ad1bee96970dfd8fd89646d4
+    name: bitbucket
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/bitbucket-1.0.3/bitbucket-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:56.394019731Z"
     description: A Helm chart for the JupiterOne Bitbucket Integration
     digest: c075a13b65c9b29676c76aca24059ca6d9d718422179744e2f20cee76877219d
@@ -33,6 +64,16 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/bitbucket-1.0.2/bitbucket-1.0.2.tgz
     version: 1.0.2
   cbdefense:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:10.986479206Z"
+    description: A Helm chart for the JupiterOne Carbon Black PSC Integration
+    digest: 1924dda720a2669571225d814e0cac14fb65b8ddc8e54057bd333e4be73c53c0
+    name: cbdefense
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/cbdefense-1.0.3/cbdefense-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:56.585891773Z"
@@ -46,6 +87,16 @@ entries:
   checkmarx:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:11.153280323Z"
+    description: A Helm chart for the JupiterOne Checkmarx Integration
+    digest: 3746e1a68f477f7a56d34c59fad0456e55bdb257222a3a1b25427277f41e6efa
+    name: checkmarx
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/checkmarx-1.0.3/checkmarx-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:56.787763161Z"
     description: A Helm chart for the JupiterOne Checkmarx Integration
     digest: e1f668bb499dcb8e25d3d891f4f13992b6e9553a449977531c07ce027582c47f
@@ -54,7 +105,50 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/checkmarx-1.0.2/checkmarx-1.0.2.tgz
     version: 1.0.2
+  cisco-aci:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:11.317338904Z"
+    description: A Helm chart for the JupiterOne Cisco ACI Integration
+    digest: 07238f4294e1d58c0fe86d681fb827f74ae534e060d9b8e824c46ec491fe8946
+    name: cisco-aci
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/cisco-aci-1.0.1/cisco-aci-1.0.1.tgz
+    version: 1.0.1
+  cribl-edge:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:11.513110353Z"
+    description: A Helm chart for the JupiterOne Cribl Edge Integration
+    digest: f3788a54fa2a61af34b3a04f2ca0767e69013732ab0c1761ebc869c5143f5824
+    name: cribl-edge
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/cribl-edge-1.0.1/cribl-edge-1.0.1.tgz
+    version: 1.0.1
+  cyberark-pam:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:11.697006227Z"
+    description: A Helm chart for the JupiterOne CyberArk PAM Integration
+    digest: ba6365cead121df251cb6747b1ad91a3302ca2b88bbebc0ce126dce6637d3f79
+    name: cyberark-pam
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/cyberark-pam-1.0.1/cyberark-pam-1.0.1.tgz
+    version: 1.0.1
   device42:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:11.904876535Z"
+    description: A Helm chart for the JupiterOne Device42 Integration
+    digest: 2cb216caa1df6ceb99b927d48fe40c63dfb5e652fde47c74c49c7cd8f66a1d73
+    name: device42
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/device42-1.0.3/device42-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:56.959543911Z"
@@ -65,7 +159,28 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/device42-1.0.2/device42-1.0.2.tgz
     version: 1.0.2
+  fleetdm:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:12.099566545Z"
+    description: A Helm chart for the JupiterOne FleetDM Integration
+    digest: 68407e415614426a324fdec9ae04962a1019b53f93421ee6acfe72504864c712
+    name: fleetdm
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/fleetdm-1.0.1/fleetdm-1.0.1.tgz
+    version: 1.0.1
   forescout-eyesight:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:12.230670212Z"
+    description: A Helm chart for the JupiterOne Forescout Eyesight Integration
+    digest: 0aa4f4c2b4c311126a6e9c582db59281f79b92229e77779f385275bcef41fbaf
+    name: forescout-eyesight
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/forescout-eyesight-1.0.3/forescout-eyesight-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:57.15128699Z"
@@ -79,6 +194,16 @@ entries:
   github:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:12.464982533Z"
+    description: A Helm chart for the JupiterOne GitHub Integration
+    digest: f972a26d961f336c3168d5e8da55d71a335942bd6663274d659dfd405d447a56
+    name: github
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/github-1.0.3/github-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:57.336359176Z"
     description: A Helm chart for the JupiterOne GitHub Integration
     digest: 34b5c9086eb5e4531ea4d4907fc62dff3fc85026254699980179102cb087d7cf
@@ -88,6 +213,16 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/github-1.0.2/github-1.0.2.tgz
     version: 1.0.2
   gitlab:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:12.63075021Z"
+    description: A Helm chart for the JupiterOne GitLab Integration
+    digest: 97074e535b31b085027a30a6a1e34081e814145f575c6741d59c080586e6eb8b
+    name: gitlab
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/gitlab-1.0.3/gitlab-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:57.532821278Z"
@@ -662,6 +797,16 @@ entries:
   hashicorp-vault:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:12.841247372Z"
+    description: A Helm chart for the JupiterOne HashiCorp Vault Integration
+    digest: ecf491469534be0e68e5f4b284da7076e3b49119b792c854829ad0216a0c7b43
+    name: hashicorp-vault
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/hashicorp-vault-1.0.3/hashicorp-vault-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:57.751238165Z"
     description: A Helm chart for the JupiterOne HashiCorp Vault Integration
     digest: 78ee0ee9531af3a5defc0a51466ee69344d08f341df81515ee69b66afc217b13
@@ -671,6 +816,16 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/hashicorp-vault-1.0.2/hashicorp-vault-1.0.2.tgz
     version: 1.0.2
   infoblox-nios:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:13.014915118Z"
+    description: A Helm chart for the JupiterOne Infoblox NIOS Integration
+    digest: d17b24c61bd8309456fb96174b197493d415eb53eeb22c1118c3a72d839a0e77
+    name: infoblox-nios
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/infoblox-nios-1.0.3/infoblox-nios-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:57.980703673Z"
@@ -684,6 +839,16 @@ entries:
   jamf:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:13.19803849Z"
+    description: A Helm chart for the JupiterOne Jamf Integration
+    digest: 0045375adb2e094de4d14d9aa6acbb7041da506f355ae06add4079785527ad06
+    name: jamf
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jamf-1.0.3/jamf-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:58.214175144Z"
     description: A Helm chart for the JupiterOne Jamf Integration
     digest: 4f253cd0190f756139a1bedbf6d3a7cc457f6f7f70d72a5107d379c6a2881205
@@ -695,6 +860,16 @@ entries:
   jenkins:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:13.414382397Z"
+    description: A Helm chart for the JupiterOne Jenkins Integration
+    digest: 792331cba2cf4937f0a22038724b3c8f37c1380e6bbd2cb9f8509cd95b37a0d0
+    name: jenkins
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jenkins-1.0.3/jenkins-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:58.426617984Z"
     description: A Helm chart for the JupiterOne Jenkins Integration
     digest: 1ae643d660a2651f53359f89c0308caa1b4b96286f60fb4e3a05af135602a339
@@ -704,6 +879,16 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/jenkins-1.0.2/jenkins-1.0.2.tgz
     version: 1.0.2
   jira:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:13.659810195Z"
+    description: A Helm chart for the JupiterOne Jira Integration
+    digest: 6aec0e5d89f88eecadbd11bc25d0881ae945d9fc41f1d57dc474b4909ef83264
+    name: jira
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jira-1.0.3/jira-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:58.653920158Z"
@@ -1099,6 +1284,16 @@ entries:
   kubernetes-managed:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:13.974868305Z"
+    description: A Helm chart for the JupiterOne Kubernetes Managed Integration
+    digest: 35a4d0116a2c78e68625bdd595e073c5ff1fc8b056f11b6391c553949e1f6dd4
+    name: kubernetes-managed
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/kubernetes-managed-1.0.9/kubernetes-managed-1.0.9.tgz
+    version: 1.0.9
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-04-10T21:07:44.8098398Z"
     description: A Helm chart for the JupiterOne Kubernetes Managed Integration
     digest: 15df22977d87ba7a8dac93e30c31a7672ec48d4a36882f1bdc59df3c6ed24d4a
@@ -1160,6 +1355,16 @@ entries:
   manage-engine-ec:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:14.237208576Z"
+    description: A Helm chart for the JupiterOne ManageEngine Endpoint Central Integration
+    digest: 3f70b58e9ec5cfad2bb96668e70ff9f030edf94aef359597dd59032a9badaa6d
+    name: manage-engine-ec
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/manage-engine-ec-1.0.3/manage-engine-ec-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:59.061044796Z"
     description: A Helm chart for the JupiterOne ManageEngine Endpoint Central Integration
     digest: 60791d779f9573fc92a1d3c12cd635088382e5ec33455d22d16f0391cf4312e6
@@ -1171,6 +1376,16 @@ entries:
   microsoft-active-directory:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:14.464276399Z"
+    description: A Helm chart for the JupiterOne Microsoft Active Directory Integration
+    digest: 419d72a7fe0bba4edb03a7eb6c710f58717ffa94774c5845954def414ff4a4d6
+    name: microsoft-active-directory
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/microsoft-active-directory-1.0.3/microsoft-active-directory-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:59.268011319Z"
     description: A Helm chart for the JupiterOne Microsoft Active Directory Integration
     digest: 7c52465d43e544a0c3d0e641082f068e939f7b84254b868fd5ec92d3a3e33387
@@ -1180,6 +1395,17 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/microsoft-active-directory-1.0.2/microsoft-active-directory-1.0.2.tgz
     version: 1.0.2
   microsoft-configuration-manager:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:14.675141465Z"
+    description: A Helm chart for the JupiterOne Microsoft Configuration Manager (SCCM)
+      Integration
+    digest: a07c2cf5f8c7a2f40ee3b7f8b6e999e5505029177c82c710e63bc1c3ea63ad4d
+    name: microsoft-configuration-manager
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/microsoft-configuration-manager-1.0.3/microsoft-configuration-manager-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:59.493869552Z"
@@ -1194,6 +1420,16 @@ entries:
   netbox:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:14.856137235Z"
+    description: A Helm chart for the JupiterOne Netbox Integration
+    digest: c618a70714b53e485ba4b86f3005cd0a91365adf72c0b728eb132e1e928d6272
+    name: netbox
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/netbox-1.0.3/netbox-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:06:59.698410037Z"
     description: A Helm chart for the JupiterOne Netbox Integration
     digest: 04cd6d1e901c4f8ec59d194e83e539d2e47c517c0c361e1f97bc36a45de68d91
@@ -1202,7 +1438,72 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/netbox-1.0.2/netbox-1.0.2.tgz
     version: 1.0.2
+  nozomi:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:15.036358037Z"
+    description: A Helm chart for the JupiterOne Nozomi Networks Integration
+    digest: 0605db94b1f716df17d3c77d1b5f645638aa7438ab56ddfc3200e8fca60dc862
+    name: nozomi
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/nozomi-1.0.1/nozomi-1.0.1.tgz
+    version: 1.0.1
+  nutanix:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:15.269707357Z"
+    description: A Helm chart for the JupiterOne Nutanix Integration
+    digest: 544641becdb5a75b5d8fda4195431877d9764bdecef587d27678babc6f21935f
+    name: nutanix
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/nutanix-1.0.1/nutanix-1.0.1.tgz
+    version: 1.0.1
+  oomnitza:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:15.493501511Z"
+    description: A Helm chart for the JupiterOne Oomnitza Integration
+    digest: 4aabd5a46999def041eccb2794104e879025f0d25a4bb941b06ba8d52052cc9a
+    name: oomnitza
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/oomnitza-1.0.1/oomnitza-1.0.1.tgz
+    version: 1.0.1
+  open-nebula:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:15.737087983Z"
+    description: A Helm chart for the JupiterOne OpenNebula Integration
+    digest: a3a88b1f0e204ff7fd467e73c29b403d6d652f3e6e36b8aa170013a99f650136
+    name: open-nebula
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/open-nebula-1.0.1/open-nebula-1.0.1.tgz
+    version: 1.0.1
+  palo-alto-panorama:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:16.016023835Z"
+    description: A Helm chart for the JupiterOne Palo Alto Panorama Integration
+    digest: 4a8ac9493a5e6806a28df677baa6a8edb44a0a9513561dbe69b15a41b0bfdc06
+    name: palo-alto-panorama
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/palo-alto-panorama-1.0.1/palo-alto-panorama-1.0.1.tgz
+    version: 1.0.1
   pulseway:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:16.229651882Z"
+    description: A Helm chart for the JupiterOne Pulseway Integration
+    digest: 1d96735b19dbf53f39da487de6bcda1c4e05fc51324a541a596a15cdbf875fd9
+    name: pulseway
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/pulseway-1.0.3/pulseway-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:06:59.932010939Z"
@@ -1216,6 +1517,16 @@ entries:
   puppet:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:16.428147756Z"
+    description: A Helm chart for the JupiterOne Puppet Integration
+    digest: 1acbc8d0470cddd8fc2376f5ee3497ded982f190a1a713eb601be8bb08db3b58
+    name: puppet
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/puppet-1.0.3/puppet-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:07:00.136504952Z"
     description: A Helm chart for the JupiterOne Puppet Integration
     digest: e0740dca7e298cedac38d69a88e572cd8092d8cba9402f666eaf117af2bdba8e
@@ -1225,6 +1536,16 @@ entries:
     - https://github.com/JupiterOne/helm-charts/releases/download/puppet-1.0.2/puppet-1.0.2.tgz
     version: 1.0.2
   rapid7:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:16.591362652Z"
+    description: A Helm chart for the JupiterOne Rapid7 Nexpose Integration
+    digest: ff0a5188a2e1f40ba9d9de76b2c3a2e2354d4cc55e668fb36f89f80e480ff8f9
+    name: rapid7
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/rapid7-1.0.3/rapid7-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:07:00.343837656Z"
@@ -1238,6 +1559,16 @@ entries:
   sailpoint-iiq:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:16.784262243Z"
+    description: A Helm chart for the JupiterOne Sailpoint IdentityIQ Integration
+    digest: 1b2274a6b7e6ea1bb5632ecde80a2a865c2156cb5884d6e8ce50a4682bdcc246
+    name: sailpoint-iiq
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/sailpoint-iiq-1.0.3/sailpoint-iiq-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:07:00.53098269Z"
     description: A Helm chart for the JupiterOne Sailpoint IdentityIQ Integration
     digest: 3a877f34bbe1e7c7dd39e9eafd3a516578e046043ed86acca3fdafc720bb1059
@@ -1249,6 +1580,16 @@ entries:
   sonarqube:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:17.010179865Z"
+    description: A Helm chart for the JupiterOne SonarQube Integration
+    digest: f19acfc6ce1b2ac89640fbfed9573673ccd1e1c56bfc634cba32a54761bf2148
+    name: sonarqube
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/sonarqube-1.0.3/sonarqube-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:07:00.7493787Z"
     description: A Helm chart for the JupiterOne SonarQube Integration
     digest: ef89640c0471eed1d614bd889dda51c89330accbbd4a30c579ffaca3e318d7a9
@@ -1257,7 +1598,28 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/sonarqube-1.0.2/sonarqube-1.0.2.tgz
     version: 1.0.2
+  teleport:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:17.214657292Z"
+    description: A Helm chart for the JupiterOne Teleport Integration
+    digest: a9ee129a9c9b1e500a5cd9b668999234895556aeda1aa0ea51b104cc212be7b0
+    name: teleport
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/teleport-1.0.1/teleport-1.0.1.tgz
+    version: 1.0.1
   terraform-cloud:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:17.432298291Z"
+    description: A Helm chart for the JupiterOne HCP Terraform Integration
+    digest: efc5bdb0cc9432fc188a7ee2bbbd9811cc2c4d64a8f3c157807c83ad45c11c88
+    name: terraform-cloud
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/terraform-cloud-1.0.3/terraform-cloud-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:07:00.928881435Z"
@@ -1268,7 +1630,28 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/terraform-cloud-1.0.2/terraform-cloud-1.0.2.tgz
     version: 1.0.2
+  torq:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:17.672077799Z"
+    description: A Helm chart for the JupiterOne Torq Integration
+    digest: a8e98b6227c6480305cd87aa2cca1a1c6b5a08ec426cef93649db32498593c49
+    name: torq
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/torq-1.0.1/torq-1.0.1.tgz
+    version: 1.0.1
   trellix-epo:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:17.921398989Z"
+    description: A Helm chart for the JupiterOne Trellix ePO Integration
+    digest: 5ed1d750a384e636a70cdcea011b277d36ed1c0c27221fe9880d86a8c5646a7c
+    name: trellix-epo
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/trellix-epo-1.0.3/trellix-epo-1.0.3.tgz
+    version: 1.0.3
   - apiVersion: v2
     appVersion: v1.0.0
     created: "2026-01-12T19:07:01.117435017Z"
@@ -1282,6 +1665,16 @@ entries:
   vsphere:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-09-30T16:27:18.103959283Z"
+    description: A Helm chart for the JupiterOne vSphere Integration
+    digest: 300ab8e51b64b5a5eda0e39acc3fb7f5a07c77f880c539faf83feac0a22f73c8
+    name: vsphere
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/vsphere-1.0.3/vsphere-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-01-12T19:07:01.357588256Z"
     description: A Helm chart for the JupiterOne vSphere Integration
     digest: 8203af76b6435eab273e68fb5bafd6edb3f85d73ba442a90856f9fa1e6bf6e0d
@@ -1290,4 +1683,15 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/vsphere-1.0.2/vsphere-1.0.2.tgz
     version: 1.0.2
-generated: "2026-09-30T15:58:41.299461851Z"
+  wazuh:
+  - apiVersion: v2
+    appVersion: v1.0.0
+    created: "2026-09-30T16:27:18.292497206Z"
+    description: A Helm chart for the JupiterOne Wazuh Integration
+    digest: f78cacfb305b50cb49b1d5e9c72bfd4e55a108e4b492de345099129b67c94702
+    name: wazuh
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/wazuh-1.0.1/wazuh-1.0.1.tgz
+    version: 1.0.1
+generated: "2026-09-30T16:27:18.292709624Z"
