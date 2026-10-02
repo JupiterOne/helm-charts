@@ -62,7 +62,10 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.container.readinessProbe` | Manager readiness probe. | `GET /readyz` on `8081` |
 | `controllerManager.container.securityContext` | Manager container security context. | `allowPrivilegeEscalation: false`, drop `ALL` |
 | `controllerManager.securityContext` | Manager pod security context. | `runAsNonRoot: true`, seccomp `RuntimeDefault` |
+| `controllerManager.deployment.labels` / `.annotations` | Extra labels and annotations on the manager Deployment. | `{}` |
 | `controllerManager.pod.labels` | Extra labels on the manager pod. | `{}` |
+| `controllerManager.pod.annotations` | Extra annotations on the manager pod. | `{}` |
+| `controllerManager.nodeSelector` / `.tolerations` / `.affinity` | Scheduling for the manager pod. | unset |
 | `controllerManager.terminationGracePeriodSeconds` | Manager pod termination grace period. | `10` |
 | `controllerManager.serviceAccountName` | Name of the operator ServiceAccount. | `jupiterone-integration-operator-controller-manager` |
 | `controllerManager.serviceAccount.annotations` | Annotations on the operator ServiceAccount. Set the IRSA role here when the operator reads credentials from AWS Secrets Manager. | `{}` |
@@ -70,6 +73,7 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.disableImageSignatureCheck` | Skip cosign signature verification of integration job images. | `false` |
 | `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. | `[]` |
 | `controllerManager.jobResources` | Requests and limits applied to integration job containers. | `{}` |
+| `controllerManager.job` | Labels, annotations, scheduling and security context for every integration run. See [Job labels, annotations and scheduling](#job-labels-annotations-and-scheduling). | `{}` |
 | `rbac.enable` | Create the operator ServiceAccount, Roles and bindings. | `true` |
 | `metrics.enable` | Create the metrics Service. Remove `--metrics-bind-address` from `args` when disabling. | `true` |
 | `prometheus.enable` | Create a `ServiceMonitor` for the metrics Service. | `false` |
@@ -251,6 +255,54 @@ controllerManager:
       cpu: "1"
       memory: 1Gi
 ```
+
+### Job labels, annotations and scheduling
+
+`controllerManager.job` applies to every integration run the operator launches
+(requires operator v0.6.0, chart 1.6.0 or later):
+
+```yaml
+controllerManager:
+  job:
+    labels:                 # every object created for a run: runner auth
+      team: security        # Secret, run Secret, IntegrationInstanceJob,
+    annotations: {}         # job Secret and Job
+    podLabels:              # the job pod
+      cost-center: "1234"   # quote numeric values
+    podAnnotations:
+      sidecar.istio.io/inject: "false"
+    nodeSelector:           # the job pod spec
+      pool: tools
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: tools
+        effect: NoSchedule
+    affinity: {}
+    podSecurityContext: {}
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]
+```
+
+Integration charts add per-instance `jobLabels`, `jobAnnotations`, `podLabels`
+and `podAnnotations`, which win over these on the same key and go on the job
+Secret, Job and pod (not on the runner's objects). They apply to the next run
+and only to instances created from an `IntegrationInstance` resource.
+
+- Keys the operator manages are rejected: `app.kubernetes.io/name`,
+  `log-watcher`, `job-name`, `controller-uid`, `batch.kubernetes.io/*`,
+  `integrations.jupiterone.io/*`.
+- An invalid value stops the new operator pod at startup while the previous one
+  keeps running. Check `kubectl rollout status` after `helm upgrade`; without
+  `--wait`, Helm reports success either way.
+- Quote numeric values: Helm reads unquoted numbers as floats, so `1.0` becomes
+  `"1"` and large numbers use exponent notation.
+- Integration images run as root, so a Pod Security `restricted` namespace is
+  not supported yet.
+- `controllerManager.nodeSelector`, `tolerations` and `affinity` schedule the
+  operator pod itself; set both when nodes are tainted.
 
 ## Usage
 

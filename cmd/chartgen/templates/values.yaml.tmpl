@@ -21,6 +21,24 @@ pollingInterval: "ONE_WEEK"
 
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
+
+# Extra labels and annotations for this integration's runs, merged over the
+# operator chart's controllerManager.job values (these win on the same key).
+# jobLabels and jobAnnotations go on the Job and its Secret; podLabels and
+# podAnnotations go on the Job's pod. Keys the operator manages
+# (app.kubernetes.io/name, log-watcher, job-name, controller-uid,
+# batch.kubernetes.io/*, integrations.jupiterone.io/*) and invalid entries are
+# dropped and reported as an InvalidJobMetadata event on the IntegrationInstance.
+# Changes apply to the next run. Quote numeric values ("1234"): Helm reads
+# unquoted numbers as floats. Requires jupiterone-integration-operator
+# {{ .MinOperatorVersionJobMetadata }} or later; older operators ignore them.
+# Example:
+#   podLabels:
+#     team: security
+jobLabels: {}
+jobAnnotations: {}
+podLabels: {}
+podAnnotations: {}
 {{- if .IngestionSources }}
 
 # Ingestion sources to enable (true) or disable (false), by ID. To set them,

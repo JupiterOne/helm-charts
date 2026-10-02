@@ -42,6 +42,7 @@ jobs:
             helm-charts/charts/jupiterone-integration-operator/tests/declared-values_test.sh \
             helm-charts/charts/jupiterone-integration-operator/tests/private-registry-values_test.sh \
             helm-charts/charts/jupiterone-integration-operator/tests/irsa-service-account_test.sh \
+            helm-charts/charts/jupiterone-integration-operator/tests/job-overrides-values_test.sh \
             helm-charts/charts/jupiterone-integration-runner/tests/runner-values_test.sh; do
             echo "::group::$script"
             bash "$script" || status=1

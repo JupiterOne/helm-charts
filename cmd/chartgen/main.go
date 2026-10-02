@@ -165,6 +165,10 @@ type IngestionSourceConfig struct {
 // CRD accepts spec.ingestionSources. Older CRDs prune the field silently.
 const minOperatorVersionForIngestionSources = "v0.5.0"
 
+// minOperatorVersionForJobMetadata is the first operator release whose
+// IntegrationInstance CRD has spec.job. Older CRDs silently drop it.
+const minOperatorVersionForJobMetadata = "v0.6.0"
+
 // supportsIngestionSources reports whether the definition has ingestion
 // sources that can be configured per instance.
 func supportsIngestionSources(def IntegrationDefinition) bool {
@@ -1231,14 +1235,18 @@ func generateValuesYaml(def IntegrationDefinition) (string, error) {
 		HasSecretFields           bool
 		IngestionSources          []IngestionSourceConfig
 		MinOperatorVersion        string
+		// MinOperatorVersionJobMetadata is the first operator release that
+		// reads spec.job (jobLabels, jobAnnotations, podLabels, podAnnotations).
+		MinOperatorVersionJobMetadata string
 	}{
-		IntegrationDefinitionName: def.Name,
-		IngestionSources:          getIngestionSources(def),
-		MinOperatorVersion:        minOperatorVersionForIngestionSources,
-		ConfigFields:              getNonMaskedConfigFields(def),
-		MaskedConfigFields:        getMaskedConfigFields(def),
-		AuthSections:              getFlattenedAuthSections(def),
-		HasSecretFields:           hasSecretFields(def),
+		IntegrationDefinitionName:     def.Name,
+		IngestionSources:              getIngestionSources(def),
+		MinOperatorVersion:            minOperatorVersionForIngestionSources,
+		MinOperatorVersionJobMetadata: minOperatorVersionForJobMetadata,
+		ConfigFields:                  getNonMaskedConfigFields(def),
+		MaskedConfigFields:            getMaskedConfigFields(def),
+		AuthSections:                  getFlattenedAuthSections(def),
+		HasSecretFields:               hasSecretFields(def),
 	}
 
 	var buf bytes.Buffer

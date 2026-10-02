@@ -46,9 +46,19 @@ controllerManager:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
-  # Extra labels on the manager pod.
+  # Extra labels and annotations on the manager Deployment.
+  # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.
+  deployment:
+    labels: {}
+    annotations: {}
+  # Extra labels and annotations on the manager pod.
   pod:
     labels: {}
+    annotations: {}
+  # Scheduling for the manager pod.
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
   terminationGracePeriodSeconds: 10
   serviceAccountName: jupiterone-integration-operator-controller-manager
   # Annotations applied to the operator ServiceAccount.
@@ -86,6 +96,49 @@ controllerManager:
   #       cpu: "1"
   #       memory: 1Gi
   jobResources: {}
+  # Labels, annotations, scheduling and security context for every integration
+  # run (JOB_OVERRIDES). Requires operator v0.6.0+.
+  # - labels/annotations: every object the operator creates for a run (runner
+  #   auth Secret, run Secret, IntegrationInstanceJob, job Secret, Job).
+  # - podLabels/podAnnotations: the job pod.
+  # - nodeSelector, tolerations, affinity, podSecurityContext,
+  #   containerSecurityContext: the job pod spec.
+  # An integration chart's jobLabels/jobAnnotations/podLabels/podAnnotations
+  # are merged over these for that instance's runs.
+  # Keys the operator manages are rejected: app.kubernetes.io/name, log-watcher,
+  # job-name, controller-uid, batch.kubernetes.io/*, integrations.jupiterone.io/*.
+  # An invalid value stops the new operator pod at startup (the previous pod
+  # keeps running); check `kubectl rollout status` after upgrading.
+  # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.
+  # Integration images run as root, so a Pod Security "restricted" namespace
+  # is not supported yet.
+  # Example:
+  #   job:
+  #     podLabels:
+  #       team: security
+  #     podAnnotations:
+  #       sidecar.istio.io/inject: "false"
+  #     nodeSelector:
+  #       pool: tools
+  #     tolerations:
+  #       - key: dedicated
+  #         operator: Equal
+  #         value: tools
+  #         effect: NoSchedule
+  #     containerSecurityContext:
+  #       allowPrivilegeEscalation: false
+  #       capabilities:
+  #         drop: ["ALL"]
+  job:
+    labels: {}
+    annotations: {}
+    podLabels: {}
+    podAnnotations: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    podSecurityContext: {}
+    containerSecurityContext: {}
 
 # [RBAC]: To enable RBAC (Permissions) configurations
 rbac:

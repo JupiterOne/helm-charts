@@ -6,6 +6,15 @@ metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     control-plane: controller-manager
+    {{- range $key, $value := .Values.controllerManager.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- with .Values.controllerManager.deployment.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   replicas:  {{ .Values.controllerManager.replicas }}
   selector:
@@ -16,6 +25,11 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
+        {{- range $key, $value := .Values.controllerManager.pod.annotations }}
+        {{- if ne $key "kubectl.kubernetes.io/default-container" }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
       labels:
         {{- include "chart.labels" . | nindent 8 }}
         control-plane: controller-manager
@@ -65,6 +79,10 @@ spec:
             - name: JOB_RESOURCES
               value: {{ . | toJson | quote }}
             {{- end }}
+            {{- with (include "chart.jobOverrides" .) }}
+            - name: JOB_OVERRIDES
+              value: {{ . | quote }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.controllerManager.container.livenessProbe | nindent 12 }}
           readinessProbe:
@@ -89,6 +107,18 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       terminationGracePeriodSeconds: {{ .Values.controllerManager.terminationGracePeriodSeconds }}
+      {{- with .Values.controllerManager.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.controllerManager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.controllerManager.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- if and .Values.certmanager.enable .Values.metrics.enable }}
       volumes:
         {{- if and .Values.metrics.enable .Values.certmanager.enable }}
