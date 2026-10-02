@@ -109,7 +109,8 @@ controllerManager:
   # Keys the operator manages are rejected: app.kubernetes.io/name, log-watcher,
   # job-name, controller-uid, batch.kubernetes.io/*, integrations.jupiterone.io/*.
   # An invalid label, annotation or nodeSelector entry, or a scheduling or
-  # security field the API server rejects (checked with a dry-run Job), stops
+  # security field the API server's validation rejects (checked with a dry-run
+  # Job; a denial by an admission policy or webhook is only logged), stops
   # the new operator pod at startup while the previous pod keeps running;
   # check `kubectl rollout status` after upgrading.
   # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.

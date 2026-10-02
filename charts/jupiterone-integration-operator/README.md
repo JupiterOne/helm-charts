@@ -295,8 +295,8 @@ and only to instances created from an `IntegrationInstance` resource.
   `log-watcher`, `job-name`, `controller-uid`, `batch.kubernetes.io/*`,
   `integrations.jupiterone.io/*`.
 - An invalid label, annotation or `nodeSelector` entry, or a scheduling or
-  security field the API server rejects (checked with a dry-run Job; a denial
-  by an admission webhook is only logged), stops the new operator pod at
+  security field the API server's validation rejects (checked with a dry-run
+  Job; a denial by an admission policy or webhook is only logged), stops the new operator pod at
   startup while the previous one keeps running. Check `kubectl rollout status` after `helm upgrade`; without
   `--wait`, Helm reports success either way.
 - Quote numeric values: Helm reads unquoted numbers as floats, so `1.0` becomes
