@@ -62,3 +62,18 @@ func TestIntegrationInstanceTemplate_RendersJobMetadata(t *testing.T) {
 		t.Errorf("empty jobAnnotations should not render:\n%s", instance)
 	}
 }
+
+func TestIntegrationInstanceTemplate_JobMetadataEmptyValue(t *testing.T) {
+	values, err := generateValuesYaml(k8sDefinitionWithConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	edited := strings.Replace(values, "\npodLabels: {}\n", "\npodLabels:\n  empty:\n", 1)
+	if edited == values {
+		t.Fatal("values.yaml has no podLabels: {} line")
+	}
+	out := renderChartWithValues(t, k8sDefinitionWithConfig(), edited)
+	if !strings.Contains(out, "\n    podLabels:\n      \"empty\": \"\"\n") || strings.Contains(out, "<nil>") {
+		t.Errorf("want a key with no value rendered as \"\", got:\n%s", out)
+	}
+}

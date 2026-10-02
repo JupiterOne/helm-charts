@@ -6,10 +6,13 @@ metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     control-plane: controller-manager
-    {{- range $key, $value := .Values.controllerManager.deployment.labels }}
+    {{- $chartLabels := list "app.kubernetes.io/version" "helm.sh/chart" "app.kubernetes.io/name" "app.kubernetes.io/instance" "app.kubernetes.io/managed-by" "control-plane" }}
+    {{- range $key, $value := (.Values.controllerManager.deployment | default dict).labels }}
+    {{- if not (has $key $chartLabels) }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
-  {{- with .Values.controllerManager.deployment.annotations }}
+    {{- end }}
+  {{- with (.Values.controllerManager.deployment | default dict).annotations }}
   annotations:
     {{- range $key, $value := . }}
     {{ $key }}: {{ $value | quote }}
@@ -25,7 +28,7 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
-        {{- range $key, $value := .Values.controllerManager.pod.annotations }}
+        {{- range $key, $value := (.Values.controllerManager.pod | default dict).annotations }}
         {{- if ne $key "kubectl.kubernetes.io/default-container" }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}

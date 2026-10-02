@@ -60,7 +60,7 @@ JOB_OVERRIDES JSON from controllerManager.job, or empty when nothing is set.
 Empty keys are omitted, so an older operator that does not know a key is
 unaffected until it is set. Unknown keys are passed through so the operator
 rejects a typo at startup. Label, annotation and nodeSelector values are
-converted to strings.
+converted to strings; a key with no value becomes "".
 */}}
 {{- define "chart.jobOverrides" -}}
 {{- $out := dict -}}
@@ -70,7 +70,7 @@ converted to strings.
 {{- if has $key $stringMaps -}}
 {{- $m := dict -}}
 {{- range $k, $v := $value -}}
-{{- $_ := set $m $k (toString $v) -}}
+{{- $_ := set $m $k (ternary "" (toString $v) (kindIs "invalid" $v)) -}}
 {{- end -}}
 {{- $_ := set $out $key $m -}}
 {{- else -}}

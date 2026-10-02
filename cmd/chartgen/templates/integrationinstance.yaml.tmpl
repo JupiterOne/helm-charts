@@ -24,7 +24,7 @@ spec:
     {{ "{{-" }} with $value {{ "}}" }}
     {{ "{{ $field }}" }}:
       {{ "{{-" }} range $k, $v := . {{ "}}" }}
-      {{ "{{ $k | quote }}: {{ $v | toString | quote }}" }}
+      {{ "{{ $k | quote }}: {{ ternary \"\" (toString $v) (kindIs \"invalid\" $v) | quote }}" }}
       {{ "{{-" }} end {{ "}}" }}
     {{ "{{-" }} end {{ "}}" }}
     {{ "{{-" }} end {{ "}}" }}

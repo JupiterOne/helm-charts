@@ -131,6 +131,47 @@ test_manager_metadata_and_scheduling() {
         nodeAffinity:" "$output"
 }
 
+test_values_from_older_chart() {
+  # helm upgrade --reuse-values from chart 1.5.0 renders with the old release's
+  # values, which have no deployment/job blocks and no pod.annotations.
+  local output status=0
+  output=$(manager \
+    --set controllerManager.deployment=null \
+    --set controllerManager.pod=null \
+    --set controllerManager.job=null 2>&1) || status=$?
+
+  if [ "$status" -eq 0 ]; then
+    echo "  PASS: Renders without the new value blocks"
+    PASSED=$((PASSED + 1))
+  else
+    echo "  FAIL: Renders without the new value blocks"
+    echo "    $output"
+    FAILED=$((FAILED + 1))
+  fi
+  assert_not_contains "No JOB_OVERRIDES without a job block" "JOB_OVERRIDES" "$output"
+}
+
+test_deployment_labels_keep_chart_labels() {
+  local output
+  output=$(manager \
+    --set controllerManager.deployment.labels.control-plane=other \
+    --set controllerManager.deployment.labels.app\\.kubernetes\\.io/name=other)
+
+  assert_not_contains "control-plane not overridden" 'control-plane: "other"' "$output"
+  assert_not_contains "app.kubernetes.io/name not overridden" 'app.kubernetes.io/name: "other"' "$output"
+}
+
+test_job_overrides_empty_value() {
+  local values output
+  values=$(mktemp)
+  printf 'controllerManager:\n  job:\n    podLabels:\n      empty:\n' >"$values"
+  output=$(manager -f "$values")
+  rm -f "$values"
+
+  assert_contains "A key with no value becomes an empty string" '\"empty\":\"\"' "$output"
+  assert_not_contains "No <nil> value" '<nil>' "$output"
+}
+
 test_events_rbac() {
   local output
   output=$(helm template test-release "$CHART_DIR" -s templates/rbac/role.yaml)
@@ -148,6 +189,9 @@ run_test "JOB_OVERRIDES JSON" test_job_overrides_json
 run_test "JOB_OVERRIDES numeric value from a values file" test_job_overrides_numeric_from_values_file
 run_test "JOB_OVERRIDES unknown key" test_job_overrides_unknown_key_passed_through
 run_test "Manager metadata and scheduling" test_manager_metadata_and_scheduling
+run_test "Values from an older chart (--reuse-values)" test_values_from_older_chart
+run_test "Deployment labels keep chart labels" test_deployment_labels_keep_chart_labels
+run_test "JOB_OVERRIDES key with no value" test_job_overrides_empty_value
 run_test "Events RBAC" test_events_rbac
 
 # --- Summary ---

@@ -46,7 +46,8 @@ controllerManager:
     runAsNonRoot: true
     seccompProfile:
       type: RuntimeDefault
-  # Extra labels and annotations on the manager Deployment.
+  # Extra labels and annotations on the manager Deployment. Labels the chart
+  # sets itself (app.kubernetes.io/*, helm.sh/chart, control-plane) are ignored.
   # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.
   deployment:
     labels: {}
@@ -107,8 +108,10 @@ controllerManager:
   # are merged over these for that instance's runs.
   # Keys the operator manages are rejected: app.kubernetes.io/name, log-watcher,
   # job-name, controller-uid, batch.kubernetes.io/*, integrations.jupiterone.io/*.
-  # An invalid value stops the new operator pod at startup (the previous pod
-  # keeps running); check `kubectl rollout status` after upgrading.
+  # An invalid label, annotation or nodeSelector entry, or a scheduling or
+  # security field the API server rejects (checked with a dry-run Job), stops
+  # the new operator pod at startup while the previous pod keeps running;
+  # check `kubectl rollout status` after upgrading.
   # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.
   # Integration images run as root, so a Pod Security "restricted" namespace
   # is not supported yet.

@@ -294,8 +294,10 @@ and only to instances created from an `IntegrationInstance` resource.
 - Keys the operator manages are rejected: `app.kubernetes.io/name`,
   `log-watcher`, `job-name`, `controller-uid`, `batch.kubernetes.io/*`,
   `integrations.jupiterone.io/*`.
-- An invalid value stops the new operator pod at startup while the previous one
-  keeps running. Check `kubectl rollout status` after `helm upgrade`; without
+- An invalid label, annotation or `nodeSelector` entry, or a scheduling or
+  security field the API server rejects (checked with a dry-run Job; a denial
+  by an admission webhook is only logged), stops the new operator pod at
+  startup while the previous one keeps running. Check `kubectl rollout status` after `helm upgrade`; without
   `--wait`, Helm reports success either way.
 - Quote numeric values: Helm reads unquoted numbers as floats, so `1.0` becomes
   `"1"` and large numbers use exponent notation.
