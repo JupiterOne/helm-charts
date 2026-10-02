@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -64,16 +66,20 @@ func TestIntegrationInstanceTemplate_RendersJobMetadata(t *testing.T) {
 }
 
 func TestIntegrationInstanceTemplate_JobMetadataEmptyValue(t *testing.T) {
-	values, err := generateValuesYaml(k8sDefinitionWithConfig())
-	if err != nil {
+	// A key with no value in a user values file must not render as "<nil>".
+	// Helm 3 passes it through as null (rendered ""); Helm 4 may drop it.
+	userValues := filepath.Join(t.TempDir(), "user.yaml")
+	if err := os.WriteFile(userValues, []byte("podLabels:\n  empty:\n  team: security\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	edited := strings.Replace(values, "\npodLabels: {}\n", "\npodLabels:\n  empty:\n", 1)
-	if edited == values {
-		t.Fatal("values.yaml has no podLabels: {} line")
+	out := renderChart(t, k8sDefinitionWithConfig(), "-f", userValues)
+	if strings.Contains(out, "<nil>") {
+		t.Errorf("a key with no value rendered as <nil>:\n%s", out)
 	}
-	out := renderChartWithValues(t, k8sDefinitionWithConfig(), edited)
-	if !strings.Contains(out, "\n    podLabels:\n      \"empty\": \"\"\n") || strings.Contains(out, "<nil>") {
-		t.Errorf("want a key with no value rendered as \"\", got:\n%s", out)
+	if !strings.Contains(out, "\n    podLabels:\n") || !strings.Contains(out, "\"team\": \"security\"") {
+		t.Errorf("want podLabels with team rendered, got:\n%s", out)
+	}
+	if strings.Contains(out, "\"empty\":") && !strings.Contains(out, "\"empty\": \"\"") {
+		t.Errorf("want a key with no value rendered as \"\" when kept, got:\n%s", out)
 	}
 }
