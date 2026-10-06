@@ -4,6 +4,7 @@ kind: IntegrationInstance
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  {{- with (include "integration.metadata" . | trim) }}{{ . | nindent 2 }}{{ end }}
 spec:
   collectorName: {{ .Values.collectorName }}
   integrationDefinitionName: device42
@@ -18,6 +19,7 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with (include "integration.job" . | trim) }}{{ . | nindent 2 }}{{ end }}
   secretRef: {{ .Values.secretName }}
   config:
     {}

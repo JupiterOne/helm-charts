@@ -22,6 +22,42 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Labels and annotations set on every object this chart creates, directly or
+# indirectly: the IntegrationInstance, its Secret (when createSecret is true),
+# and every object the operator creates for this integration's runs (run
+# Secret, IntegrationInstanceJob, job Secret, Job and pod). They win over the
+# operator and runner charts' values on the same key. helm.sh/* and
+# meta.helm.sh/* annotations are dropped, and keys the operator manages (listed
+# below) are not passed to it. Quote numeric values ("1234"). Requires
+# jupiterone-integration-operator v0.6.0 or later: upgrade the
+# operator chart first. Against an older operator's CRD, Helm 4 rejects the
+# release (".spec.job: field not declared in schema") and Helm 3 drops spec.job,
+# labelling only the IntegrationInstance and its Secret.
+# Example:
+#   commonLabels:
+#     team: security
+commonLabels: {}
+commonAnnotations: {}
+
+# Extra labels and annotations for this integration's runs only, merged over
+# commonLabels and commonAnnotations and the operator chart's
+# controllerManager.job values (these win on the same key). jobLabels and
+# jobAnnotations go on the run Secret, the IntegrationInstanceJob, the Job and
+# its Secret; podLabels and podAnnotations go on the Job's pod. Keys the operator manages
+# (app.kubernetes.io/name, log-watcher, job-name, controller-uid,
+# batch.kubernetes.io/*, integrations.jupiterone.io/*) and invalid entries are
+# dropped and reported as an InvalidJobMetadata event on the IntegrationInstance.
+# Changes apply to the next run. Quote numeric values ("1234"): Helm reads
+# unquoted numbers as floats. Requires jupiterone-integration-operator
+# v0.6.0 or later (see commonLabels above).
+# Example:
+#   podLabels:
+#     team: security
+jobLabels: {}
+jobAnnotations: {}
+podLabels: {}
+podAnnotations: {}
+
 # Ingestion sources to enable (true) or disable (false), by ID. To set them,
 # replace {} with the entries you need, one per line, indented under
 # ingestionSources:, for example:
@@ -53,8 +89,11 @@ createSecret: true
 # Integration Configuration
 # =============================================================================
 
-# Comma-separated list of KV v2 custom_metadata keys to ingest as customMetadata.<key> properties on secret entities (e.g. 'expires,expiration_date,type,team'). Leave empty to ingest none.
+# Comma-separated list of KV v2 custom_metadata keys to ingest as customMetadata.<key> properties on secret entities. Append a type to convert the value: ':boolean', ':number' or ':date' (untyped keys stay strings). Dates must be ISO 8601 (e.g. '2027-10-07' or '2027-10-07T12:00:00Z'), read as UTC unless they carry an offset; to also accept another layout, add it in parentheses: DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY, MM-DD-YYYY or MM/DD/YYYY. Values that don't match are omitted. Adding a type to a key that is already ingested changes that property's type, so update any queries or rules that compare it as a string. Example: 'expires_at:date(DD-MM-YYYY),has_expiry:boolean,owner,type'. Leave empty to ingest none.
 # customMetadataKeys:
+
+# A custom_metadata key whose value is also ingested as the secret's standard expiresOn property (e.g. 'expires_at'). Uses the date format declared for that key in Custom Metadata Keys, or ISO 8601 only if it isn't listed there. Leave empty to not set expiresOn.
+# expiresOnMetadataKey:
 
 # When enabled, reads each KV/cubbyhole secret value to detect embedded PEM X.509 certificates and records their SHA-256 (DER) fingerprints on the secret entity. Requires the Vault token to have 'read' on the secret data path. Off by default.
 # hashCertificates:
