@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -162,8 +163,15 @@ type IngestionSourceConfig struct {
 }
 
 // minOperatorVersionForIngestionSources is the first operator release whose
-// CRD accepts spec.ingestionSources. Older CRDs prune the field silently.
+// CRD accepts spec.ingestionSources. Against an older CRD, Helm 3 drops the
+// field and Helm 4 rejects the release.
 const minOperatorVersionForIngestionSources = "v0.5.0"
+
+// minOperatorVersionForJobMetadata is the first operator release whose
+// IntegrationInstance CRD has spec.job. The chart renders spec.job only when
+// commonLabels, commonAnnotations or one of the job/pod values is set, so an
+// older operator is unaffected until then.
+const minOperatorVersionForJobMetadata = "v0.6.0"
 
 // supportsIngestionSources reports whether the definition has ingestion
 // sources that can be configured per instance.
@@ -1064,21 +1072,11 @@ dist/chart/*.tgz
 `
 	files[".helmignore"] = helmignore
 
-	// Generate integrationinstance.yaml template
-	instanceYaml, err := generateIntegrationInstanceYaml(def)
+	templates, err := templateFiles(def)
 	if err != nil {
-		return fmt.Errorf("failed to generate integrationinstance.yaml: %w", err), false
+		return err, false
 	}
-	files["templates/integrationinstance.yaml"] = instanceYaml
-
-	// Generate secret.yaml template if there are secret fields
-	if hasSecretFields(def) {
-		secretYaml, err := generateSecretYaml(def)
-		if err != nil {
-			return fmt.Errorf("failed to generate secret.yaml: %w", err), false
-		}
-		files["templates/secret.yaml"] = secretYaml
-	}
+	maps.Copy(files, templates)
 
 	// Check if any content has changed (excluding version line in Chart.yaml)
 	if !chartContentChanged(chartDir, files) {
@@ -1113,6 +1111,35 @@ dist/chart/*.tgz
 	}
 
 	return nil, true
+}
+
+// templateFiles generates the chart's templates/ files, keyed by their path in
+// the chart.
+func templateFiles(def IntegrationDefinition) (map[string]string, error) {
+	files := make(map[string]string)
+
+	instanceYaml, err := generateIntegrationInstanceYaml(def)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate integrationinstance.yaml: %w", err)
+	}
+	files["templates/integrationinstance.yaml"] = instanceYaml
+
+	// Helpers shared by the templates. Copied as-is: they hold no chartgen data.
+	helpers, err := loadTemplate("_helpers.tpl.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	files["templates/_helpers.tpl"] = helpers
+
+	// Generate secret.yaml template if there are secret fields
+	if hasSecretFields(def) {
+		secretYaml, err := generateSecretYaml(def)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate secret.yaml: %w", err)
+		}
+		files["templates/secret.yaml"] = secretYaml
+	}
+	return files, nil
 }
 
 func sanitizeChartName(name string) string {
@@ -1231,14 +1258,18 @@ func generateValuesYaml(def IntegrationDefinition) (string, error) {
 		HasSecretFields           bool
 		IngestionSources          []IngestionSourceConfig
 		MinOperatorVersion        string
+		// MinOperatorVersionJobMetadata is the first operator release that
+		// reads spec.job (jobLabels, jobAnnotations, podLabels, podAnnotations).
+		MinOperatorVersionJobMetadata string
 	}{
-		IntegrationDefinitionName: def.Name,
-		IngestionSources:          getIngestionSources(def),
-		MinOperatorVersion:        minOperatorVersionForIngestionSources,
-		ConfigFields:              getNonMaskedConfigFields(def),
-		MaskedConfigFields:        getMaskedConfigFields(def),
-		AuthSections:              getFlattenedAuthSections(def),
-		HasSecretFields:           hasSecretFields(def),
+		IntegrationDefinitionName:     def.Name,
+		IngestionSources:              getIngestionSources(def),
+		MinOperatorVersion:            minOperatorVersionForIngestionSources,
+		MinOperatorVersionJobMetadata: minOperatorVersionForJobMetadata,
+		ConfigFields:                  getNonMaskedConfigFields(def),
+		MaskedConfigFields:            getMaskedConfigFields(def),
+		AuthSections:                  getFlattenedAuthSections(def),
+		HasSecretFields:               hasSecretFields(def),
 	}
 
 	var buf bytes.Buffer

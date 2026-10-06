@@ -5,6 +5,7 @@ kind: Issuer
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: selfsigned-issuer
   namespace: {{ .Release.Namespace }}
 spec:
@@ -15,10 +16,8 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  annotations:
-    {{- if .Values.crd.keep }}
-    "helm.sh/resource-policy": keep
-    {{- end }}
+  {{- $keep := ternary (dict "helm.sh/resource-policy" "keep") (dict) (.Values.crd.keep | default false) }}
+  {{- with (include "chart.annotations" (dict "ctx" . "specific" $keep)) }}{{ . | nindent 2 }}{{ end }}
   labels:
     {{- include "chart.labels" . | nindent 4 }}
   name: metrics-certs
@@ -32,5 +31,19 @@ spec:
     kind: Issuer
     name: selfsigned-issuer
   secretName: metrics-server-cert
+  {{- /* Labels and annotations for the Secret cert-manager creates. */}}
+  {{- $secretLabels := include "chart.userLabels" (dict "ctx" .) | trim }}
+  {{- $secretAnnotations := include "chart.userAnnotations" (dict "ctx" . "skipPrefix" "cert-manager.io/") | trim }}
+  {{- if or $secretLabels $secretAnnotations }}
+  secretTemplate:
+    {{- with $secretLabels }}
+    labels:
+      {{- . | nindent 6 }}
+    {{- end }}
+    {{- with $secretAnnotations }}
+    annotations:
+      {{- . | nindent 6 }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}

@@ -4,6 +4,7 @@ kind: ClusterRole
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: jupiterone-integration-operator-metrics-auth-role
 rules:
 - apiGroups:

@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
     control-plane: controller-manager
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: jupiterone-integration-operator-controller-manager-metrics-monitor
   namespace: {{ .Release.Namespace }}
 spec:

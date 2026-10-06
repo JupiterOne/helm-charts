@@ -69,6 +69,35 @@ kubectl logs -n jupiterone deploy/jupiterone-integration-operator-controller-man
 | `apiTokenSource.awsSecretsManager.secretId` | ARN or name of the AWS Secrets Manager secret. Required when `provider` is `awsSecretsManager`. | `""` |
 | `apiTokenSource.awsSecretsManager.region` | Region of the secret. Defaults to the operator's region. | `""` |
 | `apiTokenSource.awsSecretsManager.versionStage` | Staging label to read. Defaults to `AWSCURRENT`. | `""` |
+| `commonLabels` | Labels on every object this chart creates, directly or indirectly. See [Labels and annotations](#labels-and-annotations). | `{}` |
+| `commonAnnotations` | Annotations on the same objects. | `{}` |
+
+### Labels and annotations
+
+`commonLabels` and `commonAnnotations` are set on the `IntegrationRunner`, the
+API token Secret, and every object the operator creates for this runner: its
+auth Secret and, for each run, the run Secret, `IntegrationInstanceJob`, job
+Secret, Job and pod.
+
+```yaml
+commonLabels:
+  team: security
+  cost-center: "1234"   # quote numbers
+```
+
+- On the same key, these win over the operator chart's `commonLabels` and
+  `controllerManager.job` values; an integration chart's values win over
+  these.
+- Keys the operator manages (`app.kubernetes.io/name`, `log-watcher`,
+  `job-name`, `controller-uid`, `batch.kubernetes.io/*`,
+  `integrations.jupiterone.io/*`) are not passed to it, and `helm.sh/*`
+  annotations are dropped.
+- Changes apply to the next run. Keys you remove stay on objects already
+  created.
+- Requires `jupiterone-integration-operator` v0.6.0 or later (operator chart
+  1.6.0). Upgrade the operator chart first: against an older operator's CRD,
+  Helm 4 rejects the release (`.spec.commonLabels: field not declared in
+  schema`) and Helm 3 silently drops the field.
 
 ### Existing Kubernetes Secret
 

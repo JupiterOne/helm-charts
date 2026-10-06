@@ -20,7 +20,20 @@ sync-crds: ## Sync CRDs from the latest jupiterone-integration-operator release
 	tar xzf operator.tar.gz -C _operator_src && \
 	echo "Syncing CRDs to $(OPERATOR_CRD_DIR)..." && \
 	for f in _operator_src/*/config/crd/bases/*.yaml; do \
-		sed '1{/^---$$/d;}' "$$f" | awk '/^  annotations:$$/ && !done { print; print "    {{- if .Values.crd.keep }}"; print "    \"helm.sh/resource-policy\": keep"; print "    {{- end }}"; done=1; next } { print }' > "$(OPERATOR_CRD_DIR)/$$(basename $$f)"; \
+		sed '1{/^---$$/d;}' "$$f" | awk ' \
+			/^metadata:$$/ && !meta { print; \
+				print "  {{- with (include \"chart.userLabels\" (dict \"ctx\" .) | trim) }}"; \
+				print "  labels:"; \
+				print "    {{- . | nindent 4 }}"; \
+				print "  {{- end }}"; \
+				meta=1; next } \
+			/^  annotations:$$/ && !ann { print; \
+				print "    {{- if .Values.crd.keep }}"; \
+				print "    \"helm.sh/resource-policy\": keep"; \
+				print "    {{- end }}"; \
+				print "    {{- with (include \"chart.userAnnotations\" (dict \"ctx\" . \"skipPrefix\" \"controller-gen.kubebuilder.io/\") | trim) }}{{ . | nindent 4 }}{{ end }}"; \
+				ann=1; next } \
+			{ print }' > "$(OPERATOR_CRD_DIR)/$$(basename $$f)"; \
 		echo "  Synced $$(basename $$f)"; \
 	done && \
 	rm -rf _operator_src operator.tar.gz && \

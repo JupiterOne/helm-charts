@@ -78,7 +78,7 @@ test_pod_labels() {
   local output
   output=$(helm template test-release "$CHART_DIR" --set controllerManager.pod.labels.team=platform)
 
-  assert_contains "pod label rendered (quoted string value)" 'team: "platform"' "$output"
+  assert_contains "pod label rendered (quoted string value)" '"team": "platform"' "$output"
 }
 
 test_name_override() {
@@ -98,7 +98,7 @@ test_operator_service_account_annotations() {
     --set 'controllerManager.serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::123456789012:role/j1-operator')
 
   assert_contains "IRSA annotation on operator ServiceAccount" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/j1-operator" "$output"
+    "\"eks.amazonaws.com/role-arn\": \"arn:aws:iam::123456789012:role/j1-operator\"" "$output"
 }
 
 test_metrics_tls_names_match() {

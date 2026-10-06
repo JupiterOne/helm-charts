@@ -107,6 +107,7 @@ Each generated chart has the following structure:
 ├── values.yaml             # Configuration values with documentation
 ├── .helmignore             # Files to ignore when packaging
 └── templates/
+    ├── _helpers.tpl              # commonLabels / spec.job helpers (copied as-is)
     ├── integrationinstance.yaml  # IntegrationInstance CR template
     └── secret.yaml               # Secret template (if integration has auth)
 ```
