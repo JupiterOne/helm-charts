@@ -4,20 +4,10 @@ metadata:
   name: jupiterone-integration-operator-controller-manager
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "chart.ownLabels" . | nindent 4 }}
     control-plane: controller-manager
-    {{- $chartLabels := list "app.kubernetes.io/version" "helm.sh/chart" "app.kubernetes.io/name" "app.kubernetes.io/instance" "app.kubernetes.io/managed-by" "control-plane" }}
-    {{- range $key, $value := (.Values.controllerManager.deployment | default dict).labels }}
-    {{- if not (has $key $chartLabels) }}
-    {{ $key }}: {{ $value | quote }}
-    {{- end }}
-    {{- end }}
-  {{- with (.Values.controllerManager.deployment | default dict).annotations }}
-  annotations:
-    {{- range $key, $value := . }}
-    {{ $key }}: {{ $value | quote }}
-    {{- end }}
-  {{- end }}
+    {{- with (include "chart.userLabels" (dict "ctx" . "specific" (.Values.controllerManager.deployment | default dict).labels) | trim) }}{{ . | nindent 4 }}{{ end }}
+  {{- with (include "chart.annotations" (dict "ctx" . "specific" (.Values.controllerManager.deployment | default dict).annotations)) }}{{ . | nindent 2 }}{{ end }}
 spec:
   replicas:  {{ .Values.controllerManager.replicas }}
   selector:
@@ -28,19 +18,11 @@ spec:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
-        {{- range $key, $value := (.Values.controllerManager.pod | default dict).annotations }}
-        {{- if ne $key "kubectl.kubernetes.io/default-container" }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
+        {{- with (include "chart.userAnnotations" (dict "ctx" . "specific" (.Values.controllerManager.pod | default dict).annotations) | trim) }}{{ . | nindent 8 }}{{ end }}
       labels:
-        {{- include "chart.labels" . | nindent 8 }}
+        {{- include "chart.ownLabels" . | nindent 8 }}
         control-plane: controller-manager
-        {{- if and .Values.controllerManager.pod .Values.controllerManager.pod.labels }}
-        {{- range $key, $value := .Values.controllerManager.pod.labels }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end }}
-        {{- end }}
+        {{- with (include "chart.userLabels" (dict "ctx" . "specific" (.Values.controllerManager.pod | default dict).labels) | trim) }}{{ . | nindent 8 }}{{ end }}
     spec:
       containers:
         - name: manager
@@ -84,6 +66,10 @@ spec:
             {{- end }}
             {{- with (include "chart.jobOverrides" .) }}
             - name: JOB_OVERRIDES
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with (include "chart.commonLabelsJson" .) }}
+            - name: COMMON_LABELS
               value: {{ . | quote }}
             {{- end }}
           livenessProbe:

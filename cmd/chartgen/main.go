@@ -162,11 +162,14 @@ type IngestionSourceConfig struct {
 }
 
 // minOperatorVersionForIngestionSources is the first operator release whose
-// CRD accepts spec.ingestionSources. Older CRDs prune the field silently.
+// CRD accepts spec.ingestionSources. Against an older CRD, Helm 3 drops the
+// field and Helm 4 rejects the release.
 const minOperatorVersionForIngestionSources = "v0.5.0"
 
 // minOperatorVersionForJobMetadata is the first operator release whose
-// IntegrationInstance CRD has spec.job. Older CRDs silently drop it.
+// IntegrationInstance CRD has spec.job. The chart renders spec.job only when
+// commonLabels, commonAnnotations or one of the job/pod values is set, so an
+// older operator is unaffected until then.
 const minOperatorVersionForJobMetadata = "v0.6.0"
 
 // supportsIngestionSources reports whether the definition has ingestion
@@ -1074,6 +1077,13 @@ dist/chart/*.tgz
 		return fmt.Errorf("failed to generate integrationinstance.yaml: %w", err), false
 	}
 	files["templates/integrationinstance.yaml"] = instanceYaml
+
+	// Helpers shared by the templates. Copied as-is: they hold no chartgen data.
+	helpers, err := loadTemplate("_helpers.tpl.tmpl")
+	if err != nil {
+		return err, false
+	}
+	files["templates/_helpers.tpl"] = helpers
 
 	// Generate secret.yaml template if there are secret fields
 	if hasSecretFields(def) {

@@ -72,7 +72,7 @@ test_integration_service_account_annotations() {
     --set 'integration.serviceAccount.annotations.eks\.amazonaws\.com/role-arn=arn:aws:iam::123456789012:role/j1-k8s')
 
   assert_contains "IRSA annotation on the kubernetes-managed ServiceAccount" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/j1-k8s" "$output"
+    "\"eks.amazonaws.com/role-arn\": \"arn:aws:iam::123456789012:role/j1-k8s\"" "$output"
 }
 
 test_job_service_account_created() {
@@ -84,7 +84,7 @@ test_job_service_account_created() {
   assert_contains "Job ServiceAccount created with the default name" \
     "name: jupiterone-integration-job" "$output"
   assert_contains "IRSA annotation on the job ServiceAccount" \
-    "eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/j1-job" "$output"
+    "\"eks.amazonaws.com/role-arn\": \"arn:aws:iam::123456789012:role/j1-job\"" "$output"
   assert_contains "INTEGRATION_JOB_SERVICE_ACCOUNT env var name present" \
     "name: INTEGRATION_JOB_SERVICE_ACCOUNT" "$output"
   assert_contains "INTEGRATION_JOB_SERVICE_ACCOUNT value is correct" \

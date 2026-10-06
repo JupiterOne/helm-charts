@@ -52,6 +52,8 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | Parameter | Description | Default |
 |---|---|---|
 | `nameOverride` | Overrides the chart name used in the `app.kubernetes.io/name` label. | `""` |
+| `commonLabels` | Labels on every object this chart creates, directly or indirectly. See [Common labels and annotations](#common-labels-and-annotations). | `{}` |
+| `commonAnnotations` | Annotations on the same objects. | `{}` |
 | `controllerManager.replicas` | Manager replicas. Leader election is on, so extra replicas are standby only. | `1` |
 | `controllerManager.container.image.repository` | Manager image repository. | `ghcr.io/jupiterone/jupiterone-integration-operator` |
 | `controllerManager.container.image.tag` | Manager image tag. Empty uses the chart `appVersion`. | `""` |
@@ -256,6 +258,40 @@ controllerManager:
       memory: 1Gi
 ```
 
+### Common labels and annotations
+
+`commonLabels` and `commonAnnotations` are set on every object this chart
+creates, directly or indirectly (requires operator v0.6.0, chart 1.6.0 or
+later):
+
+- every rendered resource, including the CRDs, the operator pod, and with
+  `certmanager.enable` the metrics certificate Secret
+- the operator's leader-election Lease (labels only, not annotations)
+- every object the operator creates for integration runs: runner auth Secret,
+  run Secret, `IntegrationInstanceJob`, job Secret, Job and pod
+
+```yaml
+commonLabels:
+  team: security
+  cost-center: "1234"   # quote numeric values
+commonAnnotations:
+  owner: platform
+```
+
+- More specific values win on the same key: `controllerManager.deployment.*`,
+  `controllerManager.pod.*`, the ServiceAccount `annotations`, and
+  `controllerManager.job.*` for runs. The runner and integration charts have
+  their own `commonLabels`, which win over these for their runs.
+- Label keys the chart sets (`app.kubernetes.io/name`, `instance`, `version`,
+  `managed-by`, `helm.sh/chart`, `control-plane`) are skipped everywhere,
+  including the Lease and run objects.
+- Keys the operator manages on run objects (`log-watcher`, `job-name`,
+  `controller-uid`, `batch.kubernetes.io/*`, `integrations.jupiterone.io/*`)
+  are set on the chart's resources but not on run objects.
+- `helm.sh/*` and `meta.helm.sh/*` annotations are skipped everywhere.
+- Events are not labelled. Keys you remove stay on objects the operator
+  already created.
+
 ### Job labels, annotations and scheduling
 
 `controllerManager.job` applies to every integration run the operator launches
@@ -286,12 +322,18 @@ controllerManager:
         drop: ["ALL"]
 ```
 
-Integration charts add per-instance `jobLabels`, `jobAnnotations`, `podLabels`
-and `podAnnotations`, which win over these on the same key and go on the job
-Secret, Job and pod (not on the runner's objects). They apply to the next run
-and only to instances created from an `IntegrationInstance` resource.
+`commonLabels` and `commonAnnotations` are folded into these (`labels` and
+`podLabels`, `annotations` and `podAnnotations`); `controllerManager.job` wins
+on the same key.
 
-- Keys the operator manages are rejected: `app.kubernetes.io/name`,
+The runner chart's `commonLabels` and `commonAnnotations` win over these for
+that runner's runs. Integration charts add per-instance `commonLabels`,
+`jobLabels`, `jobAnnotations`, `podLabels` and `podAnnotations`, which win
+over both and go on the run Secret, `IntegrationInstanceJob`, job Secret, Job
+and pod. They apply to the next run and only to instances created from an
+`IntegrationInstance` resource.
+
+- Keys the operator manages are rejected in `controllerManager.job`: `app.kubernetes.io/name`,
   `log-watcher`, `job-name`, `controller-uid`, `batch.kubernetes.io/*`,
   `integrations.jupiterone.io/*`.
 - An invalid label, annotation or `nodeSelector` entry, or a scheduling or

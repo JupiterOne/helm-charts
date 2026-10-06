@@ -5,6 +5,7 @@ kind: Role
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: jupiterone-integration-operator-manager-role
   namespace: {{ .Release.Namespace }}
 rules:

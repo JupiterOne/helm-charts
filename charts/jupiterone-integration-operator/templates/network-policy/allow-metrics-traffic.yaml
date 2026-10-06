@@ -7,6 +7,7 @@ kind: NetworkPolicy
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: allow-metrics-traffic
   namespace: {{ .Release.Namespace }}
 spec:

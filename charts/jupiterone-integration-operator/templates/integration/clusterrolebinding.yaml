@@ -4,6 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
+  {{- with (include "chart.annotations" (dict "ctx" .)) }}{{ . | nindent 2 }}{{ end }}
   name: {{ .Values.integration.serviceAccountName }}
 subjects:
   - kind: ServiceAccount

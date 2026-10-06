@@ -22,16 +22,34 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
-# Extra labels and annotations for this integration's runs, merged over the
-# operator chart's controllerManager.job values (these win on the same key).
-# jobLabels and jobAnnotations go on the Job and its Secret; podLabels and
-# podAnnotations go on the Job's pod. Keys the operator manages
+# Labels and annotations set on every object this chart creates, directly or
+# indirectly: the IntegrationInstance, its Secret (when createSecret is true),
+# and every object the operator creates for this integration's runs (run
+# Secret, IntegrationInstanceJob, job Secret, Job and pod). They win over the
+# operator and runner charts' values on the same key. helm.sh/* and
+# meta.helm.sh/* annotations are dropped, and keys the operator manages (listed
+# below) are not passed to it. Quote numeric values ("1234"). Requires
+# jupiterone-integration-operator {{ .MinOperatorVersionJobMetadata }} or later: upgrade the
+# operator chart first. Against an older operator's CRD, Helm 4 rejects the
+# release (".spec.job: field not declared in schema") and Helm 3 drops spec.job,
+# labelling only the IntegrationInstance and its Secret.
+# Example:
+#   commonLabels:
+#     team: security
+commonLabels: {}
+commonAnnotations: {}
+
+# Extra labels and annotations for this integration's runs only, merged over
+# commonLabels and commonAnnotations and the operator chart's
+# controllerManager.job values (these win on the same key). jobLabels and
+# jobAnnotations go on the run Secret, the IntegrationInstanceJob, the Job and
+# its Secret; podLabels and podAnnotations go on the Job's pod. Keys the operator manages
 # (app.kubernetes.io/name, log-watcher, job-name, controller-uid,
 # batch.kubernetes.io/*, integrations.jupiterone.io/*) and invalid entries are
 # dropped and reported as an InvalidJobMetadata event on the IntegrationInstance.
 # Changes apply to the next run. Quote numeric values ("1234"): Helm reads
 # unquoted numbers as floats. Requires jupiterone-integration-operator
-# {{ .MinOperatorVersionJobMetadata }} or later; older operators ignore them.
+# {{ .MinOperatorVersionJobMetadata }} or later (see commonLabels above).
 # Example:
 #   podLabels:
 #     team: security

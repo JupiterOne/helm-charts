@@ -95,9 +95,14 @@ func renderChartWithValues(t *testing.T, def IntegrationDefinition, values strin
 	if err != nil {
 		t.Fatal(err)
 	}
+	helpers, err := loadTemplate("_helpers.tpl.tmpl")
+	if err != nil {
+		t.Fatal(err)
+	}
 	files := map[string]string{
 		"Chart.yaml":                         "apiVersion: v2\nname: test\nversion: 0.0.1\n",
 		"values.yaml":                        values,
+		"templates/_helpers.tpl":             helpers,
 		"templates/integrationinstance.yaml": instance,
 	}
 	if hasSecretFields(def) {

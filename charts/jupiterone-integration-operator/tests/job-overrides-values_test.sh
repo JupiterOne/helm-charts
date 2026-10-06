@@ -116,9 +116,9 @@ test_manager_metadata_and_scheduling() {
     --set controllerManager.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=zone \
     --set controllerManager.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator=Exists)
 
-  assert_contains "Deployment label" '    team: "security"' "$output"
-  assert_contains "Deployment annotation" '    owner: "sec"' "$output"
-  assert_contains "Pod annotation" 'sidecar.istio.io/inject: "false"' "$output"
+  assert_contains "Deployment label" '    "team": "security"' "$output"
+  assert_contains "Deployment annotation" '    "owner": "sec"' "$output"
+  assert_contains "Pod annotation" '"sidecar.istio.io/inject": "false"' "$output"
   assert_contains "Default-container annotation not overridden" \
     "kubectl.kubernetes.io/default-container: manager" "$output"
   assert_not_contains "Duplicate default-container annotation not rendered" \
@@ -157,8 +157,8 @@ test_deployment_labels_keep_chart_labels() {
     --set controllerManager.deployment.labels.control-plane=other \
     --set controllerManager.deployment.labels.app\\.kubernetes\\.io/name=other)
 
-  assert_not_contains "control-plane not overridden" 'control-plane: "other"' "$output"
-  assert_not_contains "app.kubernetes.io/name not overridden" 'app.kubernetes.io/name: "other"' "$output"
+  assert_not_contains "control-plane not overridden" '"control-plane": "other"' "$output"
+  assert_not_contains "app.kubernetes.io/name not overridden" '"app.kubernetes.io/name": "other"' "$output"
 }
 
 test_job_overrides_empty_value() {

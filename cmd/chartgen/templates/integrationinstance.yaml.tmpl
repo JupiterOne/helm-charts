@@ -4,6 +4,7 @@ kind: IntegrationInstance
 metadata:
   name: {{ "{{ .Release.Name }}" }}
   namespace: {{ "{{ .Release.Namespace }}" }}
+  {{ "{{-" }} with (include "integration.metadata" . | trim) {{ "}}{{ . | nindent 2 }}{{ end }}" }}
 spec:
   collectorName: {{ "{{ .Values.collectorName }}" }}
   integrationDefinitionName: {{ .IntegrationDefinitionName }}
@@ -18,17 +19,7 @@ spec:
   {{ "{{-" }} if .Values.resourceGroupId {{ "}}" }}
   resourceGroupId: {{ "{{ .Values.resourceGroupId | quote }}" }}
   {{ "{{-" }} end {{ "}}" }}
-  {{ "{{-" }} if or .Values.jobLabels .Values.jobAnnotations .Values.podLabels .Values.podAnnotations {{ "}}" }}
-  job:
-    {{ "{{-" }} range $field, $value := dict "labels" .Values.jobLabels "annotations" .Values.jobAnnotations "podLabels" .Values.podLabels "podAnnotations" .Values.podAnnotations {{ "}}" }}
-    {{ "{{-" }} with $value {{ "}}" }}
-    {{ "{{ $field }}" }}:
-      {{ "{{-" }} range $k, $v := . {{ "}}" }}
-      {{ "{{ $k | quote }}: {{ ternary \"\" (toString $v) (kindIs \"invalid\" $v) | quote }}" }}
-      {{ "{{-" }} end {{ "}}" }}
-    {{ "{{-" }} end {{ "}}" }}
-    {{ "{{-" }} end {{ "}}" }}
-  {{ "{{-" }} end {{ "}}" }}
+  {{ "{{-" }} with (include "integration.job" . | trim) {{ "}}{{ . | nindent 2 }}{{ end }}" }}
 {{- if .SupportsIngestionSources }}
   {{ "{{-" }} with .Values.ingestionSources {{ "}}" }}
   ingestionSources:

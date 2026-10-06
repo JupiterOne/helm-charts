@@ -1,6 +1,27 @@
 # Overrides the chart name used in the app.kubernetes.io/name label.
 nameOverride: ""
 
+# Labels and annotations set on every object this chart creates, directly or
+# indirectly: every rendered resource (including the CRDs and, with
+# certmanager.enable, the metrics certificate Secret) and every object the
+# operator creates for integration runs (runner auth Secret, run Secrets,
+# IntegrationInstanceJobs, job Secrets, Jobs and their pods). commonLabels
+# also go on the operator's leader-election Lease (labels only).
+# More specific values win on the same key (for example
+# controllerManager.pod.labels or controllerManager.job.labels).
+# Label keys the chart sets (app.kubernetes.io/name, instance, version,
+# managed-by, helm.sh/chart, control-plane) are skipped everywhere. Keys the
+# operator manages on run objects (log-watcher, job-name, controller-uid,
+# batch.kubernetes.io/*, integrations.jupiterone.io/*) are set on the chart's
+# resources but not on run objects. helm.sh/* and meta.helm.sh/* annotations
+# are skipped everywhere. Quote numeric values ("1234").
+# Removing a key does not remove it from objects the operator already created.
+# Example:
+#   commonLabels:
+#     team: security
+commonLabels: {}
+commonAnnotations: {}
+
 # [MANAGER]: Manager Deployment Configurations
 controllerManager:
   replicas: 1

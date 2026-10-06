@@ -46,3 +46,24 @@ apiTokenSource:
     region: ""
     # Defaults to AWSCURRENT when empty
     versionStage: ""
+
+# Labels and annotations set on every object this chart creates, directly or
+# indirectly: the IntegrationRunner, the API token Secret (when createSecret
+# is true), and every object the operator creates for this runner (its auth
+# Secret, and for each run the run Secret, IntegrationInstanceJob, job Secret,
+# Job and pod). The operator chart's controllerManager.job values and its
+# commonLabels are overridden by these on the same key; an integration chart's
+# values override these. Keys the operator manages (app.kubernetes.io/name,
+# log-watcher, job-name, controller-uid, batch.kubernetes.io/*,
+# integrations.jupiterone.io/*) are not passed to it, and helm.sh/* and
+# meta.helm.sh/* annotations are dropped. Quote numeric values ("1234").
+# Requires jupiterone-integration-operator v0.6.0 or later (operator chart
+# 1.6.0): upgrade the operator chart first. Against an older operator's CRD,
+# Helm 4 rejects the release (".spec.commonLabels: field not declared in
+# schema") and Helm 3 drops the field, labelling only the IntegrationRunner
+# and the API token Secret.
+# Example:
+#   commonLabels:
+#     team: security
+commonLabels: {}
+commonAnnotations: {}

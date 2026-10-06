@@ -6,12 +6,22 @@ kind: IntegrationRunner
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  {{- with (include "runner.metadata" . | trim) }}{{ . | nindent 2 }}{{ end }}
 spec:
   accountId: {{ .Values.accountID | quote }}
   secretName: {{ .Release.Name }}-j1internal
   secretAPITokenName: {{ .Values.secretAPITokenName }}
   syncIntervalSeconds: {{ .Values.syncIntervalSeconds }}
   jupiterOneEnvironment: {{ .Values.jupiterOneEnvironment }}
+  {{- /* Only when set: an operator older than v0.6.0 does not know these fields. */}}
+  {{- with (include "runner.metadataLines" (dict "map" .Values.commonLabels "skipReserved" true) | trim) }}
+  commonLabels:
+    {{- . | nindent 4 }}
+  {{- end }}
+  {{- with (include "runner.metadataLines" (dict "map" .Values.commonAnnotations "skipHelm" true "skipReserved" true) | trim) }}
+  commonAnnotations:
+    {{- . | nindent 4 }}
+  {{- end }}
   {{- with .Values.apiTokenSource }}
   {{- if .provider }}
   apiTokenSource:

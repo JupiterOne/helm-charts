@@ -132,6 +132,61 @@ test_validation() {
     --set accountID=acct-1 --set createSecret=false --set apiTokenSource.provider=vault
 }
 
+assert_eq() {
+  local description="$1" expected="$2" actual="$3"
+  if [ "$expected" = "$actual" ]; then
+    echo "  PASS: $description"
+    PASSED=$((PASSED + 1))
+  else
+    echo "  FAIL: $description"
+    echo "    expected: $expected"
+    echo "    got:      $actual"
+    FAILED=$((FAILED + 1))
+  fi
+}
+
+# One object of the output as compact JSON with sorted keys (requires yq).
+object_json() {
+  yq -o=json -I=0 "select(.kind == \"$1\") | $2 | sort_keys(.)" <<<"$3"
+}
+
+test_common_metadata() {
+  local output
+  output=$(helm template test-release "$CHART_DIR" \
+    --set accountID=acct-1 --set apiToken=tok \
+    --set commonLabels.team=security \
+    --set-string commonLabels.cost-center=1234 \
+    --set commonLabels.job-name=x \
+    --set commonAnnotations.note=hello \
+    --set commonAnnotations.helm\\.sh/resource-policy=keep)
+
+  local labels='{"cost-center":"1234","job-name":"x","team":"security"}'
+  assert_eq "Labels on the Secret" "$labels" "$(object_json Secret .metadata.labels "$output")"
+  assert_eq "Annotations on the Secret, helm.sh/ dropped" '{"note":"hello"}' "$(object_json Secret .metadata.annotations "$output")"
+  assert_eq "Labels on the IntegrationRunner" "$labels" "$(object_json IntegrationRunner .metadata.labels "$output")"
+  assert_eq "Annotations on the IntegrationRunner, helm.sh/ dropped" '{"note":"hello"}' "$(object_json IntegrationRunner .metadata.annotations "$output")"
+  assert_eq "spec.commonLabels without keys the operator manages" '{"cost-center":"1234","team":"security"}' \
+    "$(object_json IntegrationRunner .spec.commonLabels "$output")"
+  assert_eq "spec.commonAnnotations, helm.sh/ dropped" '{"note":"hello"}' \
+    "$(object_json IntegrationRunner .spec.commonAnnotations "$output")"
+}
+
+test_common_metadata_unset() {
+  local output
+  output=$(helm template test-release "$CHART_DIR" \
+    --set accountID=acct-1 --set apiToken=tok)
+
+  assert_not_contains "No labels by default" "labels:" "$output"
+  assert_not_contains "No annotations by default" "annotations:" "$output"
+  assert_not_contains "No spec.commonLabels by default (older CRDs lack it)" "commonLabels" "$output"
+
+  # helm upgrade --reuse-values from chart 1.1.0 has neither value.
+  output=$(helm template test-release "$CHART_DIR" \
+    --set accountID=acct-1 --set apiToken=tok \
+    --set commonLabels=null --set commonAnnotations=null 2>&1)
+  assert_contains "Renders without commonLabels (--reuse-values)" "kind: IntegrationRunner" "$output"
+}
+
 # --- Run all tests ---
 
 run_test "Kubernetes Secret created (default path)" test_kubernetes_secret_created
@@ -139,6 +194,8 @@ run_test "External Secret" test_external_secret
 run_test "apiTokenSource kubernetes" test_api_token_source_kubernetes
 run_test "apiTokenSource awsSecretsManager" test_api_token_source_asm
 run_test "Validation" test_validation
+run_test "commonLabels and commonAnnotations" test_common_metadata
+run_test "commonLabels unset" test_common_metadata_unset
 
 # --- Summary ---
 
