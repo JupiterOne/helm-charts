@@ -47,7 +47,9 @@ controllerManager:
     seccompProfile:
       type: RuntimeDefault
   # Extra labels and annotations on the manager Deployment. Labels the chart
-  # sets itself (app.kubernetes.io/*, helm.sh/chart, control-plane) are ignored.
+  # sets on the Deployment itself are ignored: app.kubernetes.io/version,
+  # helm.sh/chart, app.kubernetes.io/name, app.kubernetes.io/instance,
+  # app.kubernetes.io/managed-by and control-plane.
   # Quote numeric values ("1234"): Helm reads unquoted numbers as floats.
   deployment:
     labels: {}

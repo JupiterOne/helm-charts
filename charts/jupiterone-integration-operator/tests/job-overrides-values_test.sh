@@ -169,7 +169,7 @@ test_job_overrides_empty_value() {
   rm -f "$values"
 
   assert_contains "A key with no value becomes an empty string" '\"empty\":\"\"' "$output"
-  assert_not_contains "No <nil> value" '<nil>' "$output"
+  assert_not_contains "No <nil> value (toJson escapes it as \\u003cnil\\u003e)" 'u003cnil' "$output"
 }
 
 test_events_rbac() {
