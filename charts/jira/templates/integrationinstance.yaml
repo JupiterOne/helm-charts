@@ -4,6 +4,7 @@ kind: IntegrationInstance
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  {{- with (include "integration.metadata" . | trim) }}{{ . | nindent 2 }}{{ end }}
 spec:
   collectorName: {{ .Values.collectorName }}
   integrationDefinitionName: jira
@@ -18,6 +19,7 @@ spec:
   {{- if .Values.resourceGroupId }}
   resourceGroupId: {{ .Values.resourceGroupId | quote }}
   {{- end }}
+  {{- with (include "integration.job" . | trim) }}{{ . | nindent 2 }}{{ end }}
   {{- with .Values.ingestionSources }}
   ingestionSources:
     {{- toYaml . | nindent 4 }}
@@ -30,12 +32,18 @@ spec:
     {{- if .Values.customFields }}
     customFields: {{ .Values.customFields }}
     {{- end }}
+    {{- if .Values.issueTypes }}
+    issueTypes: {{ .Values.issueTypes }}
+    {{- end }}
+    {{- if .Values.issueLabels }}
+    issueLabels: {{ .Values.issueLabels }}
+    {{- end }}
     {{- if .Values.userAccountTypes }}
     userAccountTypes: {{ .Values.userAccountTypes }}
     {{- end }}
     {{- if .Values.assetsMapping }}
     assetsMapping: {{ .Values.assetsMapping }}
     {{- end }}
-    {{- if not (or .Values.redactIssueDescriptions .Values.customFields .Values.userAccountTypes .Values.assetsMapping) }}
+    {{- if not (or .Values.redactIssueDescriptions .Values.customFields .Values.issueTypes .Values.issueLabels .Values.userAccountTypes .Values.assetsMapping) }}
     {}
     {{- end }}

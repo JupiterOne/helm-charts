@@ -3,5 +3,5 @@ apiVersion: v2
 name: rapid7
 description: A Helm chart for the JupiterOne Rapid7 Nexpose Integration
 type: application
-version: 1.0.3
+version: 1.0.4
 appVersion: "v1.0.0"

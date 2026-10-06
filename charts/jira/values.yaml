@@ -22,6 +22,42 @@ pollingInterval: "ONE_WEEK"
 # Resource Group ID to associate with the integration instance
 # resourceGroupId: "your-resource-group-id"
 
+# Labels and annotations set on every object this chart creates, directly or
+# indirectly: the IntegrationInstance, its Secret (when createSecret is true),
+# and every object the operator creates for this integration's runs (run
+# Secret, IntegrationInstanceJob, job Secret, Job and pod). They win over the
+# operator and runner charts' values on the same key. helm.sh/* and
+# meta.helm.sh/* annotations are dropped, and keys the operator manages (listed
+# below) are not passed to it. Quote numeric values ("1234"). Requires
+# jupiterone-integration-operator v0.6.0 or later: upgrade the
+# operator chart first. Against an older operator's CRD, Helm 4 rejects the
+# release (".spec.job: field not declared in schema") and Helm 3 drops spec.job,
+# labelling only the IntegrationInstance and its Secret.
+# Example:
+#   commonLabels:
+#     team: security
+commonLabels: {}
+commonAnnotations: {}
+
+# Extra labels and annotations for this integration's runs only, merged over
+# commonLabels and commonAnnotations and the operator chart's
+# controllerManager.job values (these win on the same key). jobLabels and
+# jobAnnotations go on the run Secret, the IntegrationInstanceJob, the Job and
+# its Secret; podLabels and podAnnotations go on the Job's pod. Keys the operator manages
+# (app.kubernetes.io/name, log-watcher, job-name, controller-uid,
+# batch.kubernetes.io/*, integrations.jupiterone.io/*) and invalid entries are
+# dropped and reported as an InvalidJobMetadata event on the IntegrationInstance.
+# Changes apply to the next run. Quote numeric values ("1234"): Helm reads
+# unquoted numbers as floats. Requires jupiterone-integration-operator
+# v0.6.0 or later (see commonLabels above).
+# Example:
+#   podLabels:
+#     team: security
+jobLabels: {}
+jobAnnotations: {}
+podLabels: {}
+podAnnotations: {}
+
 # Ingestion sources to enable (true) or disable (false), by ID. To set them,
 # replace {} with the entries you need, one per line, indented under
 # ingestionSources:, for example:
@@ -65,6 +101,14 @@ createSecret: true
 # A list of custom fields (by name or id) to parse and include on the issue entity. Separate fields with commas.
 # Example: justification,10420,customfield_10210
 # customFields:
+
+# Optional. Only ingest jira_issue entities of these issue types (by name). Separate names with commas. Leave empty to ingest every issue type. Issues that stop matching are removed from JupiterOne on the next run.
+# Example: Bug,Story. Each name must be an existing issue type visible to the integration user, otherwise the run fails validation.
+# issueTypes:
+
+# Optional. Only ingest jira_issue entities that have at least one of these labels. Separate labels with commas. Leave empty to ingest issues regardless of label. Issues that stop matching are removed from JupiterOne on the next run.
+# Example: security,compliance
+# issueLabels:
 
 # The Atlassian account types to ingest as jira_user entities. Deselect Customer to skip Jira Service Management portal requesters, which on a help desk can vastly outnumber licensed users.
 # Deselecting a type also drops the created / reported / assigned relationships between those users and jira_issue entities.
