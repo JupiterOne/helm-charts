@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -1071,28 +1072,11 @@ dist/chart/*.tgz
 `
 	files[".helmignore"] = helmignore
 
-	// Generate integrationinstance.yaml template
-	instanceYaml, err := generateIntegrationInstanceYaml(def)
-	if err != nil {
-		return fmt.Errorf("failed to generate integrationinstance.yaml: %w", err), false
-	}
-	files["templates/integrationinstance.yaml"] = instanceYaml
-
-	// Helpers shared by the templates. Copied as-is: they hold no chartgen data.
-	helpers, err := loadTemplate("_helpers.tpl.tmpl")
+	templates, err := templateFiles(def)
 	if err != nil {
 		return err, false
 	}
-	files["templates/_helpers.tpl"] = helpers
-
-	// Generate secret.yaml template if there are secret fields
-	if hasSecretFields(def) {
-		secretYaml, err := generateSecretYaml(def)
-		if err != nil {
-			return fmt.Errorf("failed to generate secret.yaml: %w", err), false
-		}
-		files["templates/secret.yaml"] = secretYaml
-	}
+	maps.Copy(files, templates)
 
 	// Check if any content has changed (excluding version line in Chart.yaml)
 	if !chartContentChanged(chartDir, files) {
@@ -1127,6 +1111,35 @@ dist/chart/*.tgz
 	}
 
 	return nil, true
+}
+
+// templateFiles generates the chart's templates/ files, keyed by their path in
+// the chart.
+func templateFiles(def IntegrationDefinition) (map[string]string, error) {
+	files := make(map[string]string)
+
+	instanceYaml, err := generateIntegrationInstanceYaml(def)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate integrationinstance.yaml: %w", err)
+	}
+	files["templates/integrationinstance.yaml"] = instanceYaml
+
+	// Helpers shared by the templates. Copied as-is: they hold no chartgen data.
+	helpers, err := loadTemplate("_helpers.tpl.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	files["templates/_helpers.tpl"] = helpers
+
+	// Generate secret.yaml template if there are secret fields
+	if hasSecretFields(def) {
+		secretYaml, err := generateSecretYaml(def)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate secret.yaml: %w", err)
+		}
+		files["templates/secret.yaml"] = secretYaml
+	}
+	return files, nil
 }
 
 func sanitizeChartName(name string) string {

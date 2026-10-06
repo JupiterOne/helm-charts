@@ -15,6 +15,7 @@ func TestValuesYaml_DeclaresJobMetadata(t *testing.T) {
 	for _, want := range []string{
 		"\njobLabels: {}\n", "\njobAnnotations: {}\n", "\npodLabels: {}\n", "\npodAnnotations: {}\n",
 		"jupiterone-integration-operator\n# " + minOperatorVersionForJobMetadata + " or later",
+		"\ncommonLabels: {}\n", "\ncommonAnnotations: {}\n",
 	} {
 		if !strings.Contains(values, want) {
 			t.Errorf("values.yaml missing %q", want)
@@ -81,18 +82,6 @@ func TestIntegrationInstanceTemplate_JobMetadataEmptyValue(t *testing.T) {
 	}
 	if strings.Contains(out, "\"empty\":") && !strings.Contains(out, "\"empty\": \"\"") {
 		t.Errorf("want a key with no value rendered as \"\" when kept, got:\n%s", out)
-	}
-}
-
-func TestValuesYaml_DeclaresCommonMetadata(t *testing.T) {
-	values, err := generateValuesYaml(k8sDefinitionWithConfig())
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, want := range []string{"\ncommonLabels: {}\n", "\ncommonAnnotations: {}\n"} {
-		if !strings.Contains(values, want) {
-			t.Errorf("values.yaml missing %q", want)
-		}
 	}
 }
 

@@ -40,7 +40,7 @@ labels: and annotations: blocks from commonLabels and commonAnnotations, for an
 object's metadata, or nothing.
 */}}
 {{- define "integration.metadata" -}}
-{{- $labels := include "integration.commonMap" (dict "map" .Values.commonLabels "use" "metadata") | fromJson -}}
+{{- $labels := .Values.commonLabels | default dict -}}
 {{- $annotations := include "integration.commonMap" (dict "map" .Values.commonAnnotations "annotation" true "use" "metadata") | fromJson -}}
 {{- with (include "integration.metadataLines" (dict "map" $labels) | trim) }}
 labels:
