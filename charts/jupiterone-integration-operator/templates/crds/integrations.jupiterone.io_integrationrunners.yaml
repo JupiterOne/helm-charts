@@ -128,6 +128,24 @@ spec:
                 description: CollectorPoolID is the ID of the pool that the collector
                   belongs to.
                 type: string
+              commonAnnotations:
+                additionalProperties:
+                  type: string
+                description: |-
+                  CommonAnnotations are set on the same objects as CommonLabels, with the
+                  same precedence.
+                type: object
+              commonLabels:
+                additionalProperties:
+                  type: string
+                description: |-
+                  CommonLabels are set on every object the operator creates for this
+                  runner: its auth Secret, and for each run the run Secret, the
+                  IntegrationInstanceJob, the job Secret, the Job and its pod. They are
+                  merged over the operator-wide values (JOB_OVERRIDES); an instance's
+                  spec.job wins over them. Keys the operator manages and invalid entries
+                  are dropped. Changes apply to the next run.
+                type: object
               jupiterOneEnvironment:
                 description: |-
                   JupiterOneEnvironment is the environment of the JupiterOne API that the integration runner will connect to.

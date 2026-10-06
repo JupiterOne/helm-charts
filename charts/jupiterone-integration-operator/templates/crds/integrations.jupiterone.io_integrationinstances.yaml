@@ -87,6 +87,29 @@ spec:
                 description: IntegrationInstanceID is the ID of the created integration
                   instance in JupiterOne
                 type: string
+              job:
+                description: |-
+                  Job sets extra labels and annotations on this instance's runs. They are
+                  merged over the operator-wide values (JOB_OVERRIDES). Unlike other fields,
+                  changes apply to the next run without recreating the instance.
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  podAnnotations:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  podLabels:
+                    additionalProperties:
+                      type: string
+                    type: object
+                type: object
               pollingInterval:
                 description: PollingInterval defines how often the integration should
                   poll for data
