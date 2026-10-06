@@ -63,6 +63,13 @@ COMMON=(
   --set commonLabels.job-name=hijack
   --set commonAnnotations.note=hello
   --set commonAnnotations.helm\\.sh/resource-policy=keep
+  # Keys the operator would refuse at startup in JOB_OVERRIDES, and the
+  # manager pod's default-container annotation: all kept out of runs.
+  --set commonLabels.batch\\.kubernetes\\.io/x=hijack
+  --set commonLabels.integrations\\.jupiterone\\.io/x=hijack
+  --set commonAnnotations.job-name=hijack
+  --set commonAnnotations.integrations\\.jupiterone\\.io/x=hijack
+  --set commonAnnotations.kubectl\\.kubernetes\\.io/default-container=hijack
 )
 
 # env value of the manager container, as JSON (empty when unset)
@@ -111,6 +118,10 @@ test_every_object_labelled() {
     "$(yq -N -r 'select(.kind == "Deployment") | .spec.template.metadata.labels.team' <<<"$output")"
   assert_eq "Pod template annotation" "hello" \
     "$(yq -N -r 'select(.kind == "Deployment") | .spec.template.metadata.annotations.note' <<<"$output")"
+  assert_eq "One default-container annotation on the pod, the chart's" "manager" \
+    "$(yq -N -r 'select(.kind == "Deployment") | .spec.template.metadata.annotations["kubectl.kubernetes.io/default-container"]' <<<"$output")"
+  assert_eq "default-container from commonAnnotations is not rendered" "0" \
+    "$(grep -c 'default-container": "hijack"' <<<"$output" || true)"
   assert_eq "control-plane is not overridden" "controller-manager" \
     "$(yq -N -r 'select(.kind == "Deployment") | .spec.template.metadata.labels["control-plane"]' <<<"$output")"
   assert_eq "Selector unchanged" '{"app.kubernetes.io/instance":"test","app.kubernetes.io/name":"jupiterone-integration-operator","control-plane":"controller-manager"}' \
@@ -137,7 +148,9 @@ test_runtime_values() {
     '{"note":"hello"}' "$(yq -o=json -I=0 '.annotations' <<<"$jo")"
   assert_eq "JOB_OVERRIDES podAnnotations: job.podAnnotations win" \
     '{"note":"pod"}' "$(yq -o=json -I=0 '.podAnnotations' <<<"$jo")"
-  assert_eq "COMMON_LABELS for the Lease, chart keys left out" '{"cost-center":"1234","job-name":"hijack","team":"remitly"}' \
+  assert_eq "JOB_OVERRIDES has no key the operator manages" "" \
+    "$(yq -r '[.labels, .podLabels, .annotations, .podAnnotations] | .[] | keys | .[] | select(test("^(job-name|log-watcher|controller-uid|batch\\.kubernetes\\.io/|integrations\\.jupiterone\\.io/|kubectl\\.kubernetes\\.io/default-container)"))' <<<"$jo")"
+  assert_eq "COMMON_LABELS for the Lease, chart keys left out" '{"batch.kubernetes.io/x":"hijack","cost-center":"1234","integrations.jupiterone.io/x":"hijack","job-name":"hijack","team":"remitly"}' \
     "$(yq -o=json -I=0 'sort_keys(.)' <<<"$cl")"
 }
 

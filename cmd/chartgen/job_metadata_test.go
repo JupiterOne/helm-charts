@@ -107,6 +107,8 @@ commonAnnotations:
   helm.sh/resource-policy: keep
 podLabels:
   team: pod
+jobLabels:
+  cost-center: "5678"
 jobAnnotations:
   note: job
 `), 0o644); err != nil {
@@ -127,7 +129,7 @@ jobAnnotations:
 	}
 	job := "\n  job:\n" +
 		"    annotations:\n      \"note\": \"job\"\n" +
-		"    labels:\n      \"cost-center\": \"1234\"\n      \"team\": \"remitly\"\n" +
+		"    labels:\n      \"cost-center\": \"5678\"\n      \"team\": \"remitly\"\n" +
 		"    podAnnotations:\n      \"note\": \"hello\"\n" +
 		"    podLabels:\n      \"cost-center\": \"1234\"\n      \"team\": \"pod\"\n"
 	if !strings.Contains(instance, job) {

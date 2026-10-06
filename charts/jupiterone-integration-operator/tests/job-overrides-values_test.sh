@@ -122,7 +122,9 @@ test_manager_metadata_and_scheduling() {
   assert_contains "Default-container annotation not overridden" \
     "kubectl.kubernetes.io/default-container: manager" "$output"
   assert_not_contains "Duplicate default-container annotation not rendered" \
-    'kubectl.kubernetes.io/default-container: "other"' "$output"
+    'default-container: "other"' "$output"
+  assert_not_contains "Duplicate default-container annotation not rendered (quoted key)" \
+    '"kubectl.kubernetes.io/default-container"' "$output"
   assert_contains "Manager nodeSelector" "      nodeSelector:
         pool: tools" "$output"
   assert_contains "Manager tolerations" "      tolerations:

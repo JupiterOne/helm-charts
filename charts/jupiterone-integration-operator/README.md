@@ -288,7 +288,9 @@ commonAnnotations:
 - Keys the operator manages on run objects (`log-watcher`, `job-name`,
   `controller-uid`, `batch.kubernetes.io/*`, `integrations.jupiterone.io/*`)
   are set on the chart's resources but not on run objects.
-- `helm.sh/*` and `meta.helm.sh/*` annotations are skipped everywhere.
+- `helm.sh/*` and `meta.helm.sh/*` annotations are skipped everywhere, as is
+  `kubectl.kubernetes.io/default-container` (the chart sets it on the manager
+  pod), in `commonAnnotations` and in the object-specific annotation values.
 - Events are not labelled. Keys you remove stay on objects the operator
   already created.
 

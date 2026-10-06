@@ -185,6 +185,16 @@ test_common_metadata_unset() {
     --set accountID=acct-1 --set apiToken=tok \
     --set commonLabels=null --set commonAnnotations=null 2>&1)
   assert_contains "Renders without commonLabels (--reuse-values)" "kind: IntegrationRunner" "$output"
+
+  # A key with no value in a values file renders as "", not null.
+  local values
+  values=$(mktemp)
+  printf 'commonLabels:\n  novalue:\n' >"$values"
+  output=$(helm template test-release "$CHART_DIR" \
+    --set accountID=acct-1 --set apiToken=tok -f "$values")
+  rm -f "$values"
+  assert_eq "A key with no value renders as an empty string" '{"novalue":""}' \
+    "$(object_json IntegrationRunner .spec.commonLabels "$output")"
 }
 
 # --- Run all tests ---
