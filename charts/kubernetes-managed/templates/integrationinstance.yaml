@@ -26,19 +26,19 @@ spec:
   {{- end }}
   config:
     {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces | quote }}
+    includeNamespaces: {{ include "integration.configValue" (dict "key" "includeNamespaces" "value" .Values.includeNamespaces) }}
     {{- end }}
     {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces | quote }}
+    excludeNamespaces: {{ include "integration.configValue" (dict "key" "excludeNamespaces" "value" .Values.excludeNamespaces) }}
     {{- end }}
     {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault | quote }}
+    loadKubernetesConfigFromDefault: {{ include "integration.configValue" (dict "key" "loadKubernetesConfigFromDefault" "value" .Values.loadKubernetesConfigFromDefault) }}
     {{- end }}
     {{- if .Values.ingestAllNodeImages }}
-    ingestAllNodeImages: {{ .Values.ingestAllNodeImages | quote }}
+    ingestAllNodeImages: {{ include "integration.configValue" (dict "key" "ingestAllNodeImages" "value" .Values.ingestAllNodeImages) }}
     {{- end }}
     {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig | quote }}
+    crdMappingConfig: {{ include "integration.configValue" (dict "key" "crdMappingConfig" "value" .Values.crdMappingConfig) }}
     {{- end }}
     {{- if not (or .Values.includeNamespaces .Values.excludeNamespaces .Values.loadKubernetesConfigFromDefault .Values.ingestAllNodeImages .Values.crdMappingConfig) }}
     {}

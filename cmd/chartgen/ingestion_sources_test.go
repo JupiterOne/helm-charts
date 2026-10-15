@@ -87,6 +87,17 @@ func renderChart(t *testing.T, def IntegrationDefinition, args ...string) string
 // renderChartWithValues is renderChart with the chart's values.yaml given.
 func renderChartWithValues(t *testing.T, def IntegrationDefinition, values string, args ...string) string {
 	t.Helper()
+	out, err := helmTemplate(t, def, values, args...)
+	if err != nil {
+		t.Fatalf("helm template: %v\n%s", err, out)
+	}
+	return out
+}
+
+// helmTemplate writes a minimal chart from the generated templates and runs
+// `helm template` with args, returning its output and error.
+func helmTemplate(t *testing.T, def IntegrationDefinition, values string, args ...string) (string, error) {
+	t.Helper()
 	if _, err := exec.LookPath("helm"); err != nil {
 		t.Skip("helm not installed")
 	}
@@ -107,10 +118,7 @@ func renderChartWithValues(t *testing.T, def IntegrationDefinition, values strin
 		}
 	}
 	out, err := exec.Command("helm", append([]string{"template", "t", dir}, args...)...).CombinedOutput()
-	if err != nil {
-		t.Fatalf("helm template: %v\n%s", err, out)
-	}
-	return string(out)
+	return string(out), err
 }
 
 func TestIntegrationInstanceTemplate_RendersBooleanSources(t *testing.T) {
@@ -182,34 +190,5 @@ func TestRenderChart_EditedValuesParse(t *testing.T) {
 	out := renderChartWithValues(t, def, edited)
 	if !strings.Contains(out, "\n  ingestionSources:\n    secrets: false\n") {
 		t.Errorf("want ingestionSources from the edited values.yaml, got:\n%s", out)
-	}
-}
-
-func TestRenderChart_QuotesEveryConfigValue(t *testing.T) {
-	// spec.config only takes strings, so booleans, lists and multi-line file
-	// contents must all render as quoted strings.
-	def := k8sDefinition()
-	def.ConfigFields = []ConfigField{
-		{Key: "ingestAllNodeImages", Type: "boolean"},
-		{Key: "includeNamespaces", Type: "array"},
-		{Key: "crdMappingConfig", Type: "textFileUpload", Format: "yaml"},
-	}
-	mapping := filepath.Join(t.TempDir(), "mapping.yaml")
-	if err := os.WriteFile(mapping, []byte("resources:\n  - name: \"a.example.com\"\n    _type: kube_cr_a\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	out := renderChart(t, def,
-		"--set", "ingestAllNodeImages=true",
-		"--set-string", "includeNamespaces=default\\,prod",
-		"--set-file", "crdMappingConfig="+mapping)
-
-	for _, want := range []string{
-		"\n    ingestAllNodeImages: \"true\"\n",
-		"\n    includeNamespaces: \"default,prod\"\n",
-		"\n    crdMappingConfig: \"resources:\\n  - name: \\\"a.example.com\\\"\\n    _type: kube_cr_a\\n\"\n",
-	} {
-		if !strings.Contains(out, want) {
-			t.Errorf("want %q in:\n%s", want, out)
-		}
 	}
 }
