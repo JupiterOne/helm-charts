@@ -83,3 +83,16 @@ job:
   {{- . | nindent 2 }}
 {{- end -}}
 {{- end }}
+
+
+{{/*
+A spec.config value, quoted: spec.config only holds strings. A list or map
+fails the render, because Helm would print it as Go syntax ("[a b]") that no
+integration can read. Takes (dict "key" name "value" v).
+*/}}
+{{- define "integration.configValue" -}}
+{{- if or (kindIs "slice" .value) (kindIs "map" .value) -}}
+{{- fail (printf "%s must be a string, not a list or map: put the whole value in one quoted string, in the format its description in values.yaml gives" .key) -}}
+{{- end -}}
+{{- .value | quote -}}
+{{- end }}

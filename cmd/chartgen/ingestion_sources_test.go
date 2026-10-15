@@ -87,6 +87,17 @@ func renderChart(t *testing.T, def IntegrationDefinition, args ...string) string
 // renderChartWithValues is renderChart with the chart's values.yaml given.
 func renderChartWithValues(t *testing.T, def IntegrationDefinition, values string, args ...string) string {
 	t.Helper()
+	out, err := helmTemplate(t, def, values, args...)
+	if err != nil {
+		t.Fatalf("helm template: %v\n%s", err, out)
+	}
+	return out
+}
+
+// helmTemplate writes a minimal chart from the generated templates and runs
+// `helm template` with args, returning its output and error.
+func helmTemplate(t *testing.T, def IntegrationDefinition, values string, args ...string) (string, error) {
+	t.Helper()
 	if _, err := exec.LookPath("helm"); err != nil {
 		t.Skip("helm not installed")
 	}
@@ -107,10 +118,7 @@ func renderChartWithValues(t *testing.T, def IntegrationDefinition, values strin
 		}
 	}
 	out, err := exec.Command("helm", append([]string{"template", "t", dir}, args...)...).CombinedOutput()
-	if err != nil {
-		t.Fatalf("helm template: %v\n%s", err, out)
-	}
-	return string(out)
+	return string(out), err
 }
 
 func TestIntegrationInstanceTemplate_RendersBooleanSources(t *testing.T) {
