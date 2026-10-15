@@ -1506,6 +1506,16 @@ entries:
   kubernetes-managed:
   - apiVersion: v2
     appVersion: v1.0.0
+    created: "2026-10-15T14:12:26.178864551Z"
+    description: A Helm chart for the JupiterOne Kubernetes Managed Integration
+    digest: 2414e1ec5ea97a9eb463a741943cf61a7533e4506b3a731962a8c81b73d0922d
+    name: kubernetes-managed
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/kubernetes-managed-1.0.11/kubernetes-managed-1.0.11.tgz
+    version: 1.0.11
+  - apiVersion: v2
+    appVersion: v1.0.0
     created: "2026-10-06T17:28:17.556376052Z"
     description: A Helm chart for the JupiterOne Kubernetes Managed Integration
     digest: 0a5855e8cac78c0defaa451f866c38178ce10adc5cff300daadc979d545d6ff8
@@ -2127,4 +2137,4 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/wazuh-1.0.1/wazuh-1.0.1.tgz
     version: 1.0.1
-generated: "2026-10-06T17:28:22.576468059Z"
+generated: "2026-10-15T14:12:26.17922196Z"
