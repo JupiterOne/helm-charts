@@ -92,7 +92,7 @@ integration can read. Takes (dict "key" name "value" v).
 */}}
 {{- define "integration.configValue" -}}
 {{- if or (kindIs "slice" .value) (kindIs "map" .value) -}}
-{{- fail (printf "%s must be a string, not a list or map: put the whole value in one quoted string" .key) -}}
+{{- fail (printf "%s must be a string, not a list or map: put the whole value in one quoted string, in the format its description in values.yaml gives" .key) -}}
 {{- end -}}
 {{- .value | quote -}}
 {{- end }}
