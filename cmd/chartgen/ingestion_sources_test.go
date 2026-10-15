@@ -184,3 +184,32 @@ func TestRenderChart_EditedValuesParse(t *testing.T) {
 		t.Errorf("want ingestionSources from the edited values.yaml, got:\n%s", out)
 	}
 }
+
+func TestRenderChart_QuotesEveryConfigValue(t *testing.T) {
+	// spec.config only takes strings, so booleans, lists and multi-line file
+	// contents must all render as quoted strings.
+	def := k8sDefinition()
+	def.ConfigFields = []ConfigField{
+		{Key: "ingestAllNodeImages", Type: "boolean"},
+		{Key: "includeNamespaces", Type: "array"},
+		{Key: "crdMappingConfig", Type: "textFileUpload", Format: "yaml"},
+	}
+	mapping := filepath.Join(t.TempDir(), "mapping.yaml")
+	if err := os.WriteFile(mapping, []byte("resources:\n  - name: \"a.example.com\"\n    _type: kube_cr_a\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := renderChart(t, def,
+		"--set", "ingestAllNodeImages=true",
+		"--set-string", "includeNamespaces=default\\,prod",
+		"--set-file", "crdMappingConfig="+mapping)
+
+	for _, want := range []string{
+		"\n    ingestAllNodeImages: \"true\"\n",
+		"\n    includeNamespaces: \"default,prod\"\n",
+		"\n    crdMappingConfig: \"resources:\\n  - name: \\\"a.example.com\\\"\\n    _type: kube_cr_a\\n\"\n",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("want %q in:\n%s", want, out)
+		}
+	}
+}

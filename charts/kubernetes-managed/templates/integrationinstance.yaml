@@ -26,19 +26,19 @@ spec:
   {{- end }}
   config:
     {{- if .Values.includeNamespaces }}
-    includeNamespaces: {{ .Values.includeNamespaces }}
+    includeNamespaces: {{ .Values.includeNamespaces | quote }}
     {{- end }}
     {{- if .Values.excludeNamespaces }}
-    excludeNamespaces: {{ .Values.excludeNamespaces }}
+    excludeNamespaces: {{ .Values.excludeNamespaces | quote }}
     {{- end }}
     {{- if .Values.loadKubernetesConfigFromDefault }}
-    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault }}
+    loadKubernetesConfigFromDefault: {{ .Values.loadKubernetesConfigFromDefault | quote }}
     {{- end }}
     {{- if .Values.ingestAllNodeImages }}
-    ingestAllNodeImages: {{ .Values.ingestAllNodeImages }}
+    ingestAllNodeImages: {{ .Values.ingestAllNodeImages | quote }}
     {{- end }}
     {{- if .Values.crdMappingConfig }}
-    crdMappingConfig: {{ .Values.crdMappingConfig }}
+    crdMappingConfig: {{ .Values.crdMappingConfig | quote }}
     {{- end }}
     {{- if not (or .Values.includeNamespaces .Values.excludeNamespaces .Values.loadKubernetesConfigFromDefault .Values.ingestAllNodeImages .Values.crdMappingConfig) }}
     {}
