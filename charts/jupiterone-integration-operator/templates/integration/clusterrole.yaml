@@ -106,6 +106,89 @@ rules:
       - certificatesigningrequests
     verbs:
       - list
+  # Read-only access to the CNCF custom resources the kubernetes-managed
+  # integration can ingest through its builtinCrdPackages setting.
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificates
+      - issuers
+      - clusterissuers
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - applications
+      - rollouts
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - networking.istio.io
+    resources:
+      - gateways
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - security.istio.io
+    resources:
+      - authorizationpolicies
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - templates.gatekeeper.sh
+    resources:
+      - constrainttemplates
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - kyverno.io
+    resources:
+      - clusterpolicies
+      - policies
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - monitoring.coreos.com
+    resources:
+      - servicemonitors
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gateways
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - external-secrets.io
+    resources:
+      - externalsecrets
+    verbs:
+      - get
+      - list
   - apiGroups:
       - integrations.jupiterone.io
     resources:
