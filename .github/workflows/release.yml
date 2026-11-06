@@ -26,41 +26,13 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-  publish-ghcr:
-    name: Publish OCI charts to GHCR
+  publish-oci:
+    name: Request OCI chart publish
     needs: release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-
-      # Public repos cannot use the internal ci-tools action, so run the same command from npm.
-      - name: Push new chart versions
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-          GHCR_USERNAME: ${{ github.actor }}
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx --yes @jupiterone/ci-tools@latest ci publish-charts --project . --registry ghcr
-
-  publish-public-ecr:
-    name: Request AWS Public ECR chart publish
-    needs: publish-ghcr
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      # This public repo cannot assume AWS roles, so the internal operator repo publishes to Public ECR.
+      # The internal operator repo publishes OCI charts to GHCR and Public ECR with a pinned ci-tools.
       - name: Dispatch to jupiterone-integration-operator
         env:
           GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
