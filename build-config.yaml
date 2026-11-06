@@ -1,0 +1,4 @@
+helmCharts:
+  publish:
+    ghcr: true
+    ecrPublic: true

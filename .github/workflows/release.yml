@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,3 +25,18 @@ jobs:
         uses: helm/chart-releaser-action@v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  publish-oci:
+    name: Request OCI chart publish
+    needs: release
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      # This public repo cannot assume AWS roles, so helm-charts-internal publishes the OCI charts.
+      - name: Dispatch to helm-charts-internal
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
+        run: |
+          gh api repos/JupiterOne/helm-charts-internal/dispatches \
+            -f event_type=helm-charts-released \
+            -f "client_payload[sha]=$GITHUB_SHA"
