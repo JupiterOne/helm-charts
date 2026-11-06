@@ -8,6 +8,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,3 +25,40 @@ jobs:
         uses: helm/chart-releaser-action@v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  publish-ghcr:
+    name: Publish OCI charts to GHCR
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Push new chart versions
+        run: ./scripts/publish-oci-charts.sh oci://ghcr.io/jupiterone/helm-charts
+
+  publish-public-ecr:
+    name: Request AWS Public ECR chart publish
+    needs: publish-ghcr
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      # This public repo cannot assume AWS roles, so the internal operator repo publishes to Public ECR.
+      - name: Dispatch to jupiterone-integration-operator
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
+        run: |
+          gh api repos/JupiterOne/jupiterone-integration-operator/dispatches \
+            -f event_type=helm-charts-released \
+            -f "client_payload[sha]=$GITHUB_SHA"
