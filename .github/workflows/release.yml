@@ -40,13 +40,19 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
-      - name: Log in to GHCR
-        env:
-          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: echo "$GHCR_TOKEN" | helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
 
+      # Public repos cannot use the internal ci-tools action, so run the same command from npm.
       - name: Push new chart versions
-        run: ./scripts/publish-oci-charts.sh oci://ghcr.io/jupiterone/helm-charts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --yes @jupiterone/ci-tools@latest ci publish-charts --project . --registry ghcr
 
   publish-public-ecr:
     name: Request AWS Public ECR chart publish
