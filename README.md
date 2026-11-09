@@ -18,17 +18,7 @@ helm repo add jupiterone https://jupiterone.github.io/helm-charts
 helm repo update
 ```
 
-Every chart version is also published as an OCI chart to GHCR and AWS Public ECR. Clusters that cannot reach GitHub install from Public ECR without `helm repo add`:
-
-```console
-helm install j1-operator oci://public.ecr.aws/jupiterone/helm-charts/jupiterone-integration-operator \
-  --namespace jupiterone \
-  --create-namespace \
-  --set controllerManager.container.image.repository=public.ecr.aws/jupiterone/jupiterone-integration-operator \
-  --set controllerManager.imageRegistry=public.ecr.aws
-```
-
-Use `oci://ghcr.io/jupiterone/helm-charts/<chart>` for GHCR. See the [operator chart README](charts/jupiterone-integration-operator/README.md#installing-from-aws-public-ecr) for details.
+The operator image and every integration image are also published to AWS Public ECR. See the [operator chart README](charts/jupiterone-integration-operator/README.md#pulling-images-from-aws-public-ecr) to pull them from there.
 
 Search for available charts:
 
