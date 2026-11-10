@@ -19,6 +19,8 @@ helm repo add jupiterone https://jupiterone.github.io/helm-charts
 helm repo update
 ```
 
+If your cluster cannot reach GitHub, see [Pulling images from AWS Public ECR](#pulling-images-from-aws-public-ecr).
+
 ### 2. Create the Namespace
 
 All resources are created in the namespace `jupiterone`. If it does not exist, create it:
@@ -40,6 +42,33 @@ Check that the operator is running:
 ```console
 kubectl get pods -n jupiterone
 ```
+
+### Pulling images from AWS Public ECR
+
+The operator image and every integration image are also published to AWS Public ECR, which allows anonymous pulls. The charts are published only to the GitHub chart repository, so download them on a machine with GitHub access and copy the `.tgz` files to one that can reach your cluster:
+
+```console
+helm pull jupiterone/jupiterone-integration-operator
+helm pull jupiterone/jupiterone-integration-runner
+```
+
+Install them with the images pulled from Public ECR:
+
+```console
+kubectl create namespace jupiterone
+
+helm install integration-operator ./jupiterone-integration-operator-<version>.tgz \
+  --namespace jupiterone \
+  --set controllerManager.container.image.repository=public.ecr.aws/jupiterone/jupiterone-integration-operator \
+  --set controllerManager.imageRegistry=public.ecr.aws
+
+helm install <runnerName> ./jupiterone-integration-runner-<version>.tgz \
+  --namespace jupiterone \
+  --set apiToken=<apiToken> \
+  --set accountID=<accountID>
+```
+
+`controllerManager.imageRegistry` makes integration jobs pull `public.ecr.aws/jupiterone/graph-<name>:latest`, and the operator verifies each image against its signatures there. The cluster needs outbound `HTTPS/443` to `public.ecr.aws`, `*.cloudfront.net` and `tuf-repo-cdn.sigstore.dev`.
 
 ## Configuration
 

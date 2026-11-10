@@ -18,6 +18,8 @@ helm repo add jupiterone https://jupiterone.github.io/helm-charts
 helm repo update
 ```
 
+The operator image and every integration image are also published to AWS Public ECR. See the [operator chart README](charts/jupiterone-integration-operator/README.md#pulling-images-from-aws-public-ecr) to pull them from there.
+
 Search for available charts:
 
 ```console
