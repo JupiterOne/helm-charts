@@ -90,24 +90,42 @@ jobs:
         run: git --no-pager diff --stat && git --no-pager diff
 
       - name: Push branch
+        id: push
         if: steps.bump.outputs.changed == 'true' && steps.resolve.outputs.dry_run != 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.resolve.outputs.branch }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           TAG: ${{ steps.bump.outputs.tag }}
           PREVIOUS_TAG: ${{ steps.bump.outputs.previous_tag }}
+          BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
           set -euo pipefail
+          remote_sha=""
+          if remote_ref=$(git ls-remote --exit-code origin "refs/heads/$BRANCH"); then
+            remote_sha="${remote_ref%%[[:space:]]*}"
+            foreign=$(gh api "repos/$GITHUB_REPOSITORY/compare/$DEFAULT_BRANCH...$remote_sha" |
+              jq -r --arg bot "$BOT_EMAIL" \
+                '.commits[] | select(.commit.author.email != $bot) | "\(.sha[0:12]) \(.commit.author.name) <\(.commit.author.email)>"')
+            if [ -n "$foreign" ]; then
+              echo "::notice::$BRANCH has commits not authored by github-actions[bot]; leaving it untouched."
+              echo "$foreign"
+              echo "pushed=false" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email "$BOT_EMAIL"
           git switch -c "$BRANCH"
           git add charts/jupiterone-integration-operator
           git commit -m "chore: bump integration operator to $TAG" \
             -m "Automated bump from $PREVIOUS_TAG after the $TAG operator release."
-          git push --force origin "HEAD:refs/heads/$BRANCH"
+          git push --force-with-lease="refs/heads/$BRANCH:$remote_sha" origin "HEAD:refs/heads/$BRANCH"
+          echo "pushed=true" >>"$GITHUB_OUTPUT"
 
       - name: Open pull request
         id: pr
-        if: steps.bump.outputs.changed == 'true' && steps.resolve.outputs.dry_run != 'true'
+        if: steps.push.outputs.pushed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.resolve.outputs.branch }}
