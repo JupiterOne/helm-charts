@@ -2,6 +2,9 @@
 
 OPERATOR_REPO := JupiterOne/jupiterone-integration-operator
 OPERATOR_CRD_DIR := charts/jupiterone-integration-operator/templates/crds
+OPERATOR_TAG ?=
+REGRESSION_CLUSTER ?= helm-charts-regression
+REGRESSION_KUBECONFIG ?= $(CURDIR)/.regression-kubeconfig
 
 .PHONY: help
 help: ## Display this help
@@ -10,10 +13,13 @@ help: ## Display this help
 ##@ Sync
 
 .PHONY: sync-crds
-sync-crds: ## Sync CRDs from the latest jupiterone-integration-operator release
-	@echo "Fetching latest tag from $(OPERATOR_REPO)..."
-	@TAG=$$(gh api repos/$(OPERATOR_REPO)/tags --jq '.[0].name') && \
-	echo "Latest tag: $$TAG" && \
+sync-crds: ## Sync CRDs from an operator release (OPERATOR_TAG=vX.Y.Z, default latest tag)
+	@TAG="$(OPERATOR_TAG)" && \
+	if [ -z "$$TAG" ]; then \
+		echo "Fetching latest tag from $(OPERATOR_REPO)..." && \
+		TAG=$$(gh api repos/$(OPERATOR_REPO)/tags --jq '.[0].name'); \
+	fi && \
+	echo "Operator tag: $$TAG" && \
 	echo "Downloading source archive..." && \
 	gh api repos/$(OPERATOR_REPO)/tarball/$${TAG} > operator.tar.gz && \
 	mkdir -p _operator_src && \
@@ -52,3 +58,18 @@ verify-crds: sync-crds ## Verify CRDs are in sync with the latest operator relea
 		exit 1; \
 	fi
 	@echo "CRDs are in sync with the latest operator release."
+
+##@ Test
+
+.PHONY: test-regression
+test-regression: ## Run the Terratest regression suite against a fresh, disposable kind cluster
+	kind delete cluster --name '$(REGRESSION_CLUSTER)' --kubeconfig '$(REGRESSION_KUBECONFIG)'
+	kind create cluster --name '$(REGRESSION_CLUSTER)' --kubeconfig '$(REGRESSION_KUBECONFIG)' --wait 120s
+	cd test/regression && \
+		REGRESSION_KUBECONFIG='$(REGRESSION_KUBECONFIG)' \
+		REGRESSION_KUBE_CONTEXT='kind-$(REGRESSION_CLUSTER)' \
+		go test -v -count=1 -timeout 30m ./...
+
+.PHONY: test-regression-cleanup
+test-regression-cleanup: ## Delete the regression kind cluster
+	kind delete cluster --name '$(REGRESSION_CLUSTER)' --kubeconfig '$(REGRESSION_KUBECONFIG)'
