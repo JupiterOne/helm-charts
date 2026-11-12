@@ -77,7 +77,7 @@ jobs:
 
       - name: Show changes
         if: steps.bump.outputs.changed == 'true'
-        run: git diff --stat && git diff
+        run: git --no-pager diff --stat && git --no-pager diff
 
       - name: Push branch
         if: steps.bump.outputs.changed == 'true' && steps.resolve.outputs.dry_run != 'true'
