@@ -96,27 +96,33 @@ jobs:
       - name: Run regression suite
         run: make test-regression
 
-  auto-merge:
-    name: Auto-merge
+  request-review:
+    name: Request review + auto-merge
     needs: [verify-operator-crds, chart-tests, chartgen-tests, regression]
     if: >-
-      github.event_name == 'workflow_dispatch' &&
-      startsWith(github.ref_name, 'automation/operator-v') &&
-      github.actor == 'github-actions[bot]'
+      (github.event_name == 'workflow_dispatch' &&
+       startsWith(github.ref_name, 'automation/operator-v') &&
+       github.actor == 'github-actions[bot]') ||
+      (github.event_name == 'pull_request' &&
+       github.actor == 'dependabot[bot]' &&
+       github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - name: Verify bump pull request
+      - name: Verify automation pull request
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_AUTHOR: ${{ github.event_name == 'pull_request' && 'app/dependabot' || 'app/github-actions' }}
+          IS_OPERATOR_BUMP: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -euo pipefail
           pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open \
-            --json number,author,headRefOid,baseRefName,files --jq '.[0] // empty')
+            --json number,author,headRefOid,baseRefName,isCrossRepository,files --jq '.[0] // empty')
           if [ -z "$pr" ]; then
             echo "::error::No open pull request for $BRANCH"
             exit 1
@@ -125,39 +131,61 @@ jobs:
           author=$(jq -r '.author.login' <<<"$pr")
           head=$(jq -r '.headRefOid' <<<"$pr")
           base=$(jq -r '.baseRefName' <<<"$pr")
-          if [ "$author" != "app/github-actions" ]; then
-            echo "::error::PR #$number author is $author, expected github-actions[bot]"
+          cross=$(jq -r '.isCrossRepository' <<<"$pr")
+          if [ "$author" != "$EXPECTED_AUTHOR" ]; then
+            echo "::error::PR #$number author is $author, expected $EXPECTED_AUTHOR"
             exit 1
           fi
-          if [ "$head" != "$GITHUB_SHA" ]; then
-            echo "::error::PR #$number head $head differs from tested commit $GITHUB_SHA"
+          if [ "$cross" != "false" ]; then
+            echo "::error::PR #$number comes from a fork"
+            exit 1
+          fi
+          if [ "$head" != "$HEAD_SHA" ]; then
+            echo "::error::PR #$number head $head differs from tested commit $HEAD_SHA"
             exit 1
           fi
           if [ "$base" != "main" ]; then
             echo "::error::PR #$number targets $base, expected main"
             exit 1
           fi
-          unexpected=$(jq -r '.files[].path' <<<"$pr" | grep -vxE 'charts/jupiterone-integration-operator/(Chart\.yaml|templates/crds/[^/]+\.yaml)' || true)
-          if [ -n "$unexpected" ]; then
-            echo "::error::PR #$number changes files outside the operator bump allowlist: $unexpected"
-            exit 1
+          if [ "$IS_OPERATOR_BUMP" = "true" ]; then
+            unexpected=$(jq -r '.files[].path' <<<"$pr" | grep -vxE 'charts/jupiterone-integration-operator/(Chart\.yaml|templates/crds/[^/]+\.yaml)' || true)
+            if [ -n "$unexpected" ]; then
+              echo "::error::PR #$number changes files outside the operator bump allowlist: $unexpected"
+              exit 1
+            fi
+            chart_changes=$(gh pr diff "$number" --repo "$GITHUB_REPOSITORY" |
+              awk '/^diff --git/ { in_chart = ($0 ~ /Chart\.yaml$/) } in_chart && /^[-+]/ && !/^(---|\+\+\+) / { print }' |
+              grep -vE '^[-+](version|appVersion): ' || true)
+            if [ -n "$chart_changes" ]; then
+              echo "::error::PR #$number changes Chart.yaml beyond version and appVersion: $chart_changes"
+              exit 1
+            fi
           fi
-          chart_changes=$(gh pr diff "$number" --repo "$GITHUB_REPOSITORY" |
-            awk '/^diff --git/ { in_chart = ($0 ~ /Chart\.yaml$/) } in_chart && /^[-+]/ && !/^(---|\+\+\+) / { print }' |
-            grep -vE '^[-+](version|appVersion): ' || true)
-          if [ -n "$chart_changes" ]; then
-            echo "::error::PR #$number changes Chart.yaml beyond version and appVersion: $chart_changes"
-            exit 1
-          fi
-          echo "number=$number" >>"$GITHUB_OUTPUT"
+          {
+            echo "number=$number"
+            echo "head=$head"
+          } >>"$GITHUB_OUTPUT"
 
-      - name: Approve and merge
+      - name: Repository token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: JupiterOne
+          repositories: helm-charts
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+
+      - name: Request code-owner review and enable auto-merge
         env:
-          GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ steps.pr.outputs.head }}
         run: |
           set -euo pipefail
-          gh pr review "$NUMBER" --repo "$GITHUB_REPOSITORY" --approve \
-            --body "Pull Request Checks passed on $GITHUB_SHA, including the Terratest regression suite."
-          gh pr merge "$NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch \
-            --match-head-commit "$GITHUB_SHA"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/requested_reviewers" \
+            -f 'team_reviewers[]=integrations' --silent
+          gh pr merge "$NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash --match-head-commit "$HEAD_SHA"

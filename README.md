@@ -151,7 +151,7 @@ For information about generating and maintaining these charts, see the [chartgen
 
 ### Operator releases
 
-Each `jupiterone-integration-operator` release sends a `repository_dispatch` (`operator-released`) that runs the `Bump Integration Operator` workflow. It sets the chart `appVersion` to the new tag, bumps the chart patch version, syncs the CRDs from that tag and opens an `automation/operator-v<version>` pull request. Pull Request Checks then run on that branch; when every check, including the Terratest regression suite, passes, the PR is approved and merged and chart-releaser publishes the chart.
+Each `jupiterone-integration-operator` release sends a `repository_dispatch` (`operator-released`) that runs the `Bump Integration Operator` workflow. It sets the chart `appVersion` to the new tag, bumps the chart patch version, syncs the CRDs from that tag and opens an `automation/operator-v<version>` pull request. Pull Request Checks then run on that branch; when every check, including the Terratest regression suite, passes, the workflow requests review from the integrations code owners and enables auto-merge. One code-owner approval merges the PR and chart-releaser publishes the chart. Dependabot pull requests follow the same flow.
 
 To bump by hand, run the workflow with a `version` input (`X.Y.Z`). Set `dry-run` to see the change without pushing a branch.
 
