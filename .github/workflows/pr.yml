@@ -96,9 +96,31 @@ jobs:
       - name: Run regression suite
         run: make test-regression
 
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.12
+          ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl -fsSLo "$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  $archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+
+      - name: Lint workflows
+        run: '"$RUNNER_TEMP/actionlint" -color'
+
   request-review:
     name: Request review + auto-merge
-    needs: [verify-operator-crds, chart-tests, chartgen-tests, regression]
+    needs: [verify-operator-crds, chart-tests, chartgen-tests, regression, actionlint]
     if: >-
       (github.event_name == 'workflow_dispatch' &&
        startsWith(github.ref_name, 'automation/operator-v') &&
