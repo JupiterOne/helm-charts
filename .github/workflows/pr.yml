@@ -82,8 +82,39 @@ jobs:
       - name: Run chartgen tests
         run: go test ./cmd/chartgen/...
 
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      regression: ${{ steps.diff.outputs.regression }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+
+      - name: Detect regression-relevant changes
+        id: diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "regression=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          printf '%s\n' "$changed"
+          if grep -qE '^(charts/jupiterone-integration-operator/|test/regression/|\.github/workflows/pr\.yml$|Makefile$)' <<<"$changed"; then
+            echo "regression=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "regression=false" >>"$GITHUB_OUTPUT"
+          fi
+
   regression:
     name: Regression (Terratest)
+    needs: [changes]
+    if: ${{ !cancelled() && needs.changes.outputs.regression != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -131,14 +162,17 @@ jobs:
 
   request-review:
     name: Request review + auto-merge
-    needs: [verify-operator-crds, chart-tests, chartgen-tests, regression, actionlint]
+    needs: [changes, verify-operator-crds, chart-tests, chartgen-tests, regression, actionlint]
     if: >-
-      (github.event_name == 'workflow_dispatch' &&
+      always() && !cancelled() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
+      ((github.event_name == 'workflow_dispatch' &&
        startsWith(github.ref_name, 'automation/operator-v') &&
        github.actor == 'github-actions[bot]') ||
       (github.event_name == 'pull_request' &&
        github.actor == 'dependabot[bot]' &&
-       github.event.pull_request.user.login == 'dependabot[bot]')
+       github.event.pull_request.user.login == 'dependabot[bot]'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
