@@ -131,27 +131,46 @@ jobs:
           echo "number=$number" >>"$GITHUB_OUTPUT"
 
       - name: Close superseded bump pull requests
+        id: supersede
         if: steps.pr.outputs.number != ''
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.resolve.outputs.branch }}
           NUMBER: ${{ steps.pr.outputs.number }}
+          VERSION: ${{ steps.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          gh pr list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" --limit 100 \
+          others=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" --limit 100 \
             --json number,headRefName \
-            --jq '.[] | select(.headRefName | startswith("automation/operator-v")) | "\(.number) \(.headRefName)"' |
-            while read -r old_number old_branch; do
-              if [ "$old_branch" = "$BRANCH" ]; then
-                continue
-              fi
-              echo "Closing #$old_number ($old_branch), superseded by #$NUMBER"
-              gh pr close "$old_number" --repo "$GITHUB_REPOSITORY" --delete-branch \
-                --comment "Superseded by #$NUMBER."
-            done
+            --jq '.[] | select(.headRefName | startswith("automation/operator-v")) | "\(.number) \(.headRefName)"')
+          newer=""
+          while read -r other_number other_branch; do
+            if [ -z "$other_number" ] || [ "$other_branch" = "$BRANCH" ]; then
+              continue
+            fi
+            other_version="${other_branch#automation/operator-v}"
+            if [ "$(printf '%s\n%s\n' "$other_version" "$VERSION" | sort -V | tail -n1)" = "$other_version" ]; then
+              newer="$other_number"
+            fi
+          done <<<"$others"
+          if [ -n "$newer" ]; then
+            echo "Closing #$NUMBER ($BRANCH), superseded by newer #$newer"
+            gh pr close "$NUMBER" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Superseded by #$newer."
+            echo "superseded=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          while read -r old_number old_branch; do
+            if [ -z "$old_number" ] || [ "$old_branch" = "$BRANCH" ]; then
+              continue
+            fi
+            echo "Closing #$old_number ($old_branch), superseded by #$NUMBER"
+            gh pr close "$old_number" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Superseded by #$NUMBER."
+          done <<<"$others"
 
       - name: Run pull request checks
-        if: steps.pr.outputs.number != ''
+        if: steps.pr.outputs.number != '' && steps.supersede.outputs.superseded != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.resolve.outputs.branch }}

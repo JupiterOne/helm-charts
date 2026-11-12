@@ -2,6 +2,7 @@
 
 OPERATOR_REPO := JupiterOne/jupiterone-integration-operator
 OPERATOR_CRD_DIR := charts/jupiterone-integration-operator/templates/crds
+OPERATOR_CHART_FILE := charts/jupiterone-integration-operator/Chart.yaml
 OPERATOR_TAG ?=
 REGRESSION_CLUSTER ?= helm-charts-regression
 REGRESSION_KUBECONFIG ?= $(CURDIR)/.regression-kubeconfig
@@ -24,6 +25,7 @@ sync-crds: ## Sync CRDs from an operator release (OPERATOR_TAG=vX.Y.Z, default l
 	gh api repos/$(OPERATOR_REPO)/tarball/$${TAG} > operator.tar.gz && \
 	mkdir -p _operator_src && \
 	tar xzf operator.tar.gz -C _operator_src && \
+	rm -f $(OPERATOR_CRD_DIR)/*.yaml && \
 	echo "Syncing CRDs to $(OPERATOR_CRD_DIR)..." && \
 	for f in _operator_src/*/config/crd/bases/*.yaml; do \
 		sed '1{/^---$$/d;}' "$$f" | awk ' \
@@ -46,18 +48,19 @@ sync-crds: ## Sync CRDs from an operator release (OPERATOR_TAG=vX.Y.Z, default l
 	echo "Done."
 
 .PHONY: verify-crds
-verify-crds: sync-crds ## Verify CRDs are in sync with the latest operator release (fails if changes detected)
+verify-crds: ## Verify CRDs match the operator release in the chart appVersion (fails if changes detected)
+	@$(MAKE) --no-print-directory sync-crds OPERATOR_TAG="$$(sed -n -E 's/^appVersion:[[:space:]]*"?([^"]+)"?[[:space:]]*$$/\1/p' $(OPERATOR_CHART_FILE))"
 	@if [ -n "$$(git status --porcelain $(OPERATOR_CRD_DIR))" ]; then \
 		echo ""; \
-		echo "ERROR: CRDs are out of sync with the latest operator release."; \
+		echo "ERROR: CRDs are out of sync with the chart appVersion operator release."; \
 		echo ""; \
 		echo "Changed files:"; \
 		git status --porcelain $(OPERATOR_CRD_DIR); \
 		echo ""; \
-		echo "Run 'make sync-crds' locally and commit the changes."; \
+		echo "Run 'make sync-crds OPERATOR_TAG=<chart appVersion>' locally and commit the changes."; \
 		exit 1; \
 	fi
-	@echo "CRDs are in sync with the latest operator release."
+	@echo "CRDs are in sync with the chart appVersion operator release."
 
 ##@ Test
 
