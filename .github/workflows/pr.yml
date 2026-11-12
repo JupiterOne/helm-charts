@@ -2,6 +2,7 @@ name: Pull Request Checks
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   verify-operator-crds:
@@ -69,3 +70,94 @@ jobs:
 
       - name: Run chartgen tests
         run: go test ./cmd/chartgen/...
+
+  regression:
+    name: Regression (Terratest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: test/regression/go.mod
+          cache-dependency-path: test/regression/go.sum
+
+      - name: Set up Helm
+        uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+
+      - name: Install kind
+        uses: helm/kind-action@ea822c7bf1874f08e5a491df991c228edffc3376 # v1.15.2
+        with:
+          install_only: true
+
+      - name: Run regression suite
+        run: make test-regression
+
+  auto-merge:
+    name: Auto-merge
+    needs: [verify-operator-crds, chart-tests, chartgen-tests, regression]
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      startsWith(github.ref_name, 'automation/operator-v') &&
+      github.actor == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Verify bump pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          pr=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open \
+            --json number,author,headRefOid,baseRefName,files --jq '.[0] // empty')
+          if [ -z "$pr" ]; then
+            echo "::error::No open pull request for $BRANCH"
+            exit 1
+          fi
+          number=$(jq -r '.number' <<<"$pr")
+          author=$(jq -r '.author.login' <<<"$pr")
+          head=$(jq -r '.headRefOid' <<<"$pr")
+          base=$(jq -r '.baseRefName' <<<"$pr")
+          if [ "$author" != "app/github-actions" ]; then
+            echo "::error::PR #$number author is $author, expected github-actions[bot]"
+            exit 1
+          fi
+          if [ "$head" != "$GITHUB_SHA" ]; then
+            echo "::error::PR #$number head $head differs from tested commit $GITHUB_SHA"
+            exit 1
+          fi
+          if [ "$base" != "main" ]; then
+            echo "::error::PR #$number targets $base, expected main"
+            exit 1
+          fi
+          unexpected=$(jq -r '.files[].path' <<<"$pr" | grep -vxE 'charts/jupiterone-integration-operator/(Chart\.yaml|templates/crds/[^/]+\.yaml)' || true)
+          if [ -n "$unexpected" ]; then
+            echo "::error::PR #$number changes files outside the operator bump allowlist: $unexpected"
+            exit 1
+          fi
+          chart_changes=$(gh pr diff "$number" --repo "$GITHUB_REPOSITORY" |
+            awk '/^diff --git/ { in_chart = ($0 ~ /Chart\.yaml$/) } in_chart && /^[-+]/ && !/^(---|\+\+\+) / { print }' |
+            grep -vE '^[-+](version|appVersion): ' || true)
+          if [ -n "$chart_changes" ]; then
+            echo "::error::PR #$number changes Chart.yaml beyond version and appVersion: $chart_changes"
+            exit 1
+          fi
+          echo "number=$number" >>"$GITHUB_OUTPUT"
+
+      - name: Approve and merge
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_GITHUB_PAT_TOKEN }}
+          NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          gh pr review "$NUMBER" --repo "$GITHUB_REPOSITORY" --approve \
+            --body "Pull Request Checks passed on $GITHUB_SHA, including the Terratest regression suite."
+          gh pr merge "$NUMBER" --repo "$GITHUB_REPOSITORY" --squash --delete-branch \
+            --match-head-commit "$GITHUB_SHA"
