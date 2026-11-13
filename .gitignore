@@ -10,3 +10,6 @@ cmd/chartgen/chartgen
 /chartgen
 claude-flow/
 .swarm/
+
+# Regression suite kubeconfig
+.regression-kubeconfig

@@ -149,6 +149,16 @@ helm uninstall my-github --namespace jupiterone
 
 For information about generating and maintaining these charts, see the [chartgen documentation](cmd/chartgen/README.md).
 
+### Operator releases
+
+Each `jupiterone-integration-operator` release sends a `repository_dispatch` (`operator-released`) that runs the `Bump Integration Operator` workflow. It sets the chart `appVersion` to the new tag, bumps the chart version at the same level as the operator change (major, minor or patch), syncs the CRDs from that tag and opens an `automation/operator-v<version>` pull request. Pull Request Checks then run on that branch; when every check, including the Terratest regression suite, passes, the workflow requests review from the integrations code owners and enables auto-merge. One code-owner approval merges the PR and chart-releaser publishes the chart. Dependabot pull requests follow the same flow.
+
+To bump by hand, run the workflow with a `version` input (`X.Y.Z`). Set `dry-run` to see the change without pushing a branch.
+
+### Regression tests
+
+`make test-regression` creates a disposable kind cluster (`helm-charts-regression`) and runs the Terratest suite in `test/regression`. It installs the operator chart with default values, upgrades from the previous published chart, checks CRDs, probes and restarts, and uninstalls. It refuses to run against any context that is not a kind cluster. Remove the cluster with `make test-regression-cleanup`.
+
 ## Support
 
 For issues with these Helm charts, please open an issue in this repository.

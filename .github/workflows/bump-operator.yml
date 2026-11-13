@@ -1,0 +1,195 @@
+name: Bump Integration Operator
+
+on:
+  repository_dispatch:
+    types: [operator-released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Operator release version without the leading v (X.Y.Z)
+        required: true
+        type: string
+      dry-run:
+        description: Show the bump without pushing a branch or opening a PR
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: bump-integration-operator
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    name: Bump operator chart
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Resolve operator version
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_TAG: ${{ github.event.client_payload.tag }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            version="$DISPATCH_VERSION"
+            if [ "$DISPATCH_TAG" != "v$DISPATCH_VERSION" ]; then
+              echo "::error::client_payload.tag must equal v + client_payload.version"
+              exit 1
+            fi
+            dry_run=false
+          else
+            version="$INPUT_VERSION"
+            dry_run="${INPUT_DRY_RUN:-false}"
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Operator version must match X.Y.Z"
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "branch=automation/operator-v$version"
+            echo "dry_run=$dry_run"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: true
+
+      - name: Operator repository token
+        id: operator-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: JupiterOne
+          repositories: jupiterone-integration-operator
+          permission-contents: read
+
+      - name: Bump chart
+        id: bump
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          GH_TOKEN: ${{ steps.operator-token.outputs.token }}
+        run: scripts/bump-operator-chart.sh
+
+      - name: Show changes
+        if: steps.bump.outputs.changed == 'true'
+        run: git --no-pager diff --stat && git --no-pager diff
+
+      - name: Push branch
+        id: push
+        if: steps.bump.outputs.changed == 'true' && steps.resolve.outputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.resolve.outputs.branch }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TAG: ${{ steps.bump.outputs.tag }}
+          PREVIOUS_TAG: ${{ steps.bump.outputs.previous_tag }}
+          BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          remote_sha=""
+          if remote_ref=$(git ls-remote --exit-code origin "refs/heads/$BRANCH"); then
+            remote_sha="${remote_ref%%[[:space:]]*}"
+            foreign=$(gh api "repos/$GITHUB_REPOSITORY/compare/$DEFAULT_BRANCH...$remote_sha" |
+              jq -r --arg bot "$BOT_EMAIL" \
+                '.commits[] | select(.commit.author.email != $bot) | "\(.sha[0:12]) \(.commit.author.name) <\(.commit.author.email)>"')
+            if [ -n "$foreign" ]; then
+              echo "::notice::$BRANCH has commits not authored by github-actions[bot]; leaving it untouched."
+              echo "$foreign"
+              echo "pushed=false" >>"$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "$BOT_EMAIL"
+          git switch -c "$BRANCH"
+          git add charts/jupiterone-integration-operator
+          git commit -m "chore: bump integration operator to $TAG" \
+            -m "Automated bump from $PREVIOUS_TAG after the $TAG operator release."
+          git push --force-with-lease="refs/heads/$BRANCH:$remote_sha" origin "HEAD:refs/heads/$BRANCH"
+          echo "pushed=true" >>"$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        id: pr
+        if: steps.push.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.resolve.outputs.branch }}
+          TAG: ${{ steps.bump.outputs.tag }}
+          PREVIOUS_TAG: ${{ steps.bump.outputs.previous_tag }}
+          CHART_VERSION: ${{ steps.bump.outputs.chart_version }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_URL: https://github.com/JupiterOne/jupiterone-integration-operator/releases/tag/${{ steps.bump.outputs.tag }}
+        run: |
+          set -euo pipefail
+          number=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then
+            body=$(printf '%s\n\n%s\n\n%s\n' \
+              "Bumps \`jupiterone-integration-operator\` chart to \`$CHART_VERSION\` and appVersion \`$PREVIOUS_TAG\` -> \`$TAG\` after the [$TAG operator release]($RELEASE_URL)." \
+              "Opened by the \`Bump Integration Operator\` workflow. Pull Request Checks, including the Terratest regression suite, run via workflow_dispatch; when they pass, review is requested from the integrations team and auto-merge is enabled, so an approval merges it and chart-releaser publishes the chart." \
+              "Ticket: https://jupiterone.atlassian.net/browse/PLATENG-1677")
+            url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$DEFAULT_BRANCH" \
+              --head "$BRANCH" --title "chore: bump integration operator to $TAG" --body "$body")
+            number="${url##*/}"
+          fi
+          echo "number=$number" >>"$GITHUB_OUTPUT"
+
+      - name: Close superseded bump pull requests
+        id: supersede
+        if: steps.pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.resolve.outputs.branch }}
+          NUMBER: ${{ steps.pr.outputs.number }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          others=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --author "app/github-actions" --limit 100 \
+            --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("automation/operator-v")) | "\(.number) \(.headRefName)"')
+          newer=""
+          while read -r other_number other_branch; do
+            if [ -z "$other_number" ] || [ "$other_branch" = "$BRANCH" ]; then
+              continue
+            fi
+            other_version="${other_branch#automation/operator-v}"
+            if [ "$(printf '%s\n%s\n' "$other_version" "$VERSION" | sort -V | tail -n1)" = "$other_version" ]; then
+              newer="$other_number"
+            fi
+          done <<<"$others"
+          if [ -n "$newer" ]; then
+            echo "Closing #$NUMBER ($BRANCH), superseded by newer #$newer"
+            gh pr close "$NUMBER" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Superseded by #$newer."
+            echo "superseded=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          while read -r old_number old_branch; do
+            if [ -z "$old_number" ] || [ "$old_branch" = "$BRANCH" ]; then
+              continue
+            fi
+            echo "Closing #$old_number ($old_branch), superseded by #$NUMBER"
+            gh pr close "$old_number" --repo "$GITHUB_REPOSITORY" --delete-branch \
+              --comment "Superseded by #$NUMBER."
+          done <<<"$others"
+
+      - name: Run pull request checks
+        if: steps.pr.outputs.number != '' && steps.supersede.outputs.superseded != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.resolve.outputs.branch }}
+        run: gh workflow run pr.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH"
