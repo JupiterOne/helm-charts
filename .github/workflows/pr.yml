@@ -160,8 +160,8 @@ jobs:
       - name: Lint workflows
         run: '"$RUNNER_TEMP/actionlint" -color'
 
-  request-review:
-    name: Request review + auto-merge
+  auto-merge:
+    name: Enable auto-merge
     needs: [changes, verify-operator-crds, chart-tests, chartgen-tests, regression, actionlint]
     if: >-
       always() && !cancelled() &&
@@ -246,7 +246,7 @@ jobs:
           permission-pull-requests: write
           permission-workflows: write
 
-      - name: Request code-owner review and enable auto-merge
+      - name: Enable auto-merge
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           NUMBER: ${{ steps.pr.outputs.number }}
@@ -254,5 +254,3 @@ jobs:
         run: |
           set -euo pipefail
           gh pr merge "$NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash --match-head-commit "$HEAD_SHA"
-          gh api --method POST "repos/$GITHUB_REPOSITORY/pulls/$NUMBER/requested_reviewers" \
-            -f 'team_reviewers[]=integrations' --silent
