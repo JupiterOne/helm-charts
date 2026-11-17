@@ -223,8 +223,9 @@ How the operator uses the mirror:
   repositories on demand, with no extra configuration. If you copy images
   instead of caching them, copy the `-signatures` repositories too.
 - Signature verification authenticates to the mirror only with
-  `controllerManager.imagePullSecrets`. It does not use node credentials or an
-  IAM role on the operator ServiceAccount. Without a pull secret, a private
+  `controllerManager.imagePullSecrets`. It does not use node credentials, an IAM
+  role on the operator ServiceAccount, or the ServiceAccount's own
+  `imagePullSecrets`. Without a pull secret, a private
   mirror returns `401 Unauthorized` and the operator falls back to verifying
   against `ghcr.io`, which fails when the cluster cannot reach GitHub. The log
   line `Image verification failed against custom registry, falling back to
@@ -362,22 +363,29 @@ CA.
 
 #### Artifactory remote Docker repository
 
-1. Create a remote repository, package type Docker, for example
-   `ecr-public`, with URL `https://public.ecr.aws` and no credentials.
-2. Use the repository path Docker access method, so images are addressed as
-   `<artifactory-host>/<repo-key>/jupiterone/...`.
-3. Give the user that the cluster pulls with read access to the repository,
-   plus Deploy/Cache, which Artifactory requires to cache an image on a cache
-   miss. Store it as a pull secret:
+Works with JFrog Container Registry (JCR) and Artifactory Pro.
+
+1. Create a remote repository, package type Docker, for example `ecr-public`:
+   URL `https://public.ecr.aws`, no upstream credentials, Docker API V2,
+   Enable Token Authentication on. A metadata retrieval cache period of about
+   600 seconds keeps `latest` fresh. With the default Repository Path access
+   method, images are addressed as
+   `<artifactory-host>/ecr-public/jupiterone/<image>:<tag>`.
+2. Create a dedicated pull user, for example `jupiterone-puller` (in the UI on
+   JCR, or through the REST API on Pro), and a permission target on
+   `ecr-public` granting Read, Annotate and Deploy/Cache. Read alone is not
+   enough: Artifactory rejects a pull that misses the cache unless the user can
+   cache the artifact, and `latest` changes, so cache misses recur. Do not use
+   an admin token. Store the user's token as a pull secret:
 
    ```console
    kubectl -n jupiterone create secret docker-registry artifactory-pull \
      --docker-server=<artifactory-host> \
-     --docker-username=<user> \
-     --docker-password=<identity-token>
+     --docker-username=jupiterone-puller \
+     --docker-password=<token>
    ```
 
-4. Install with these values:
+3. Install with these values:
 
    ```yaml
    controllerManager:
@@ -632,6 +640,9 @@ kubectl delete namespace jupiterone
   means `controllerManager.imagePullSecrets` is missing or the token expired. See
   [Private registry mirror](#private-registry-mirror).
 - **`failed to get trusted root`:** allow egress to `tuf-repo-cdn.sigstore.dev:443`.
+- **`authorization token has expired` from cosign when testing by hand:** a
+  stale `public.ecr.aws` entry in `~/.docker/config.json` stops cosign from
+  pulling anonymously. Run `docker logout public.ecr.aws` and retry.
 - **Job pod `ErrImagePull` with `NotFound` from an ECR pull-through cache:** the
   node role lacks `ecr:CreateRepository` or `ecr:BatchImportUpstreamImage` on the
   cache prefix.
