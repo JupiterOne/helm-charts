@@ -3,12 +3,14 @@ package regression
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/helm"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/retry"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Subtests share cluster-scoped names (CRDs, ClusterRoles), so they run sequentially.
@@ -28,6 +30,32 @@ func TestOperatorChart(t *testing.T) {
 		assertManagerHealthy(t, opts, local.AppVersion)
 
 		helm.Delete(t, helmOptions(opts, helmHome, nil), release, true)
+		assertReleaseResourcesGone(t, opts, release)
+		waitForCRDsGone(t, opts)
+	})
+
+	t.Run("ExtraVolumesMountedAndServiceAccountsReadable", func(t *testing.T) {
+		opts := kubectlOptions(t, namespace)
+		release := "regression-extra-volumes"
+		withNamespace(t, opts)
+		uninstallOnCleanup(t, opts, helmHome, release)
+
+		k8s.RunKubectl(t, opts, "create", "configmap", trustedRootConfigMap,
+			"--from-literal=trusted_root.json={}")
+		values := map[string]string{
+			"controllerManager.extraVolumes[0].name":           trustedRootVolume,
+			"controllerManager.extraVolumes[0].configMap.name": trustedRootConfigMap,
+			"controllerManager.extraVolumeMounts[0].name":      trustedRootVolume,
+			"controllerManager.extraVolumeMounts[0].mountPath": trustedRootMountPath,
+			"controllerManager.extraVolumeMounts[0].readOnly":  "true",
+		}
+		helm.Install(t, helmOptions(opts, helmHome, values), chartDir(t), release)
+		assertCRDsEstablished(t, opts)
+		assertManagerHealthy(t, opts, local.AppVersion)
+		assertManagerMountsTrustedRoot(t, opts)
+		assertManagerCanGetServiceAccounts(t, opts)
+
+		helm.Delete(t, helmOptions(opts, helmHome, values), release, true)
 		assertReleaseResourcesGone(t, opts, release)
 		waitForCRDsGone(t, opts)
 	})
@@ -129,4 +157,55 @@ func assertChartLabel(t *testing.T, opts *k8s.KubectlOptions, version string) {
 		}
 		return got, nil
 	})
+}
+
+const (
+	trustedRootConfigMap  = "sigstore-trusted-root"
+	trustedRootVolume     = "sigstore"
+	trustedRootMountPath  = "/etc/sigstore"
+	managerServiceAccount = "jupiterone-integration-operator-controller-manager"
+)
+
+func assertManagerMountsTrustedRoot(t *testing.T, opts *k8s.KubectlOptions) {
+	t.Helper()
+	for _, pod := range managerPods(t, opts) {
+		if !podHasConfigMapVolume(pod.Spec.Volumes, trustedRootVolume, trustedRootConfigMap) {
+			t.Fatalf("pod %s has no volume %s from configmap %s", pod.Name, trustedRootVolume, trustedRootConfigMap)
+		}
+		if !managerMounts(pod.Spec.Containers, trustedRootVolume, trustedRootMountPath) {
+			t.Fatalf("pod %s manager container does not mount %s at %s", pod.Name, trustedRootVolume, trustedRootMountPath)
+		}
+	}
+}
+
+func podHasConfigMapVolume(volumes []corev1.Volume, name, configMap string) bool {
+	for _, v := range volumes {
+		if v.Name == name && v.ConfigMap != nil && v.ConfigMap.Name == configMap {
+			return true
+		}
+	}
+	return false
+}
+
+func managerMounts(containers []corev1.Container, volume, path string) bool {
+	for _, c := range containers {
+		if c.Name != "manager" {
+			continue
+		}
+		for _, m := range c.VolumeMounts {
+			if m.Name == volume && m.MountPath == path && m.ReadOnly {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func assertManagerCanGetServiceAccounts(t *testing.T, opts *k8s.KubectlOptions) {
+	t.Helper()
+	subject := fmt.Sprintf("system:serviceaccount:%s:%s", opts.Namespace, managerServiceAccount)
+	out, err := k8s.RunKubectlAndGetOutputE(t, opts, "auth", "can-i", "get", "serviceaccounts", "--as", subject)
+	if err != nil || strings.TrimSpace(out) != "yes" {
+		t.Fatalf("%s cannot get serviceaccounts in %s: %q %v", subject, opts.Namespace, out, err)
+	}
 }
