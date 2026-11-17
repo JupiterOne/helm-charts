@@ -19,7 +19,7 @@ helm repo add jupiterone https://jupiterone.github.io/helm-charts
 helm repo update
 ```
 
-If your cluster cannot reach GitHub, see [Pulling images from AWS Public ECR](#pulling-images-from-aws-public-ecr).
+If your cluster cannot reach GitHub, see [Installing without GitHub access](#installing-without-github-access).
 
 ### 2. Create the Namespace
 
@@ -43,24 +43,28 @@ Check that the operator is running:
 kubectl get pods -n jupiterone
 ```
 
-### Pulling images from AWS Public ECR
+### Installing without GitHub access
 
-The operator image and every integration image are also published to AWS Public ECR, which allows anonymous pulls. The charts are published only to the GitHub chart repository, so download them on a machine with GitHub access and copy the `.tgz` files to one that can reach your cluster:
+The charts are published only to the GitHub chart repository. Download them on
+a machine with GitHub access and copy the `.tgz` files to one that can reach
+your cluster:
 
 ```console
 helm pull jupiterone/jupiterone-integration-operator
 helm pull jupiterone/jupiterone-integration-runner
 ```
 
-Install them with the images pulled from Public ECR:
+The operator image and the integration images are published to `ghcr.io` and
+to AWS Public ECR (`public.ecr.aws/jupiterone`). Serve them to the cluster from
+a [private registry mirror](#private-registry-mirror) of Public ECR, then
+install from the `.tgz` files with the mirror's values file:
 
 ```console
 kubectl create namespace jupiterone
 
 helm install integration-operator ./jupiterone-integration-operator-<version>.tgz \
   --namespace jupiterone \
-  --set controllerManager.container.image.repository=public.ecr.aws/jupiterone/jupiterone-integration-operator \
-  --set controllerManager.imageRegistry=public.ecr.aws
+  -f mirror-values.yaml
 
 helm install <runnerName> ./jupiterone-integration-runner-<version>.tgz \
   --namespace jupiterone \
@@ -68,7 +72,13 @@ helm install <runnerName> ./jupiterone-integration-runner-<version>.tgz \
   --set accountID=<accountID>
 ```
 
-`controllerManager.imageRegistry` makes integration jobs pull `public.ecr.aws/jupiterone/graph-<name>:latest`, and the operator verifies each image against its signatures there. The cluster needs outbound `HTTPS/443` to `public.ecr.aws`, `*.cloudfront.net` and `tuf-repo-cdn.sigstore.dev`.
+Pulling from `public.ecr.aws` directly also works
+(`controllerManager.imageRegistry: public.ecr.aws` and the operator image
+`public.ecr.aws/jupiterone/jupiterone-integration-operator`), but the cluster
+then needs egress to `public.ecr.aws`, `tuf-repo-cdn.sigstore.dev` and the
+CloudFront host `public.ecr.aws` redirects image layer downloads to. AWS does
+not document that hostname and can change it, so a mirror is the recommended
+way to avoid a broad CloudFront allowlist.
 
 ## Configuration
 
@@ -100,9 +110,9 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.terminationGracePeriodSeconds` | Manager pod termination grace period. | `10` |
 | `controllerManager.serviceAccountName` | Name of the operator ServiceAccount. | `jupiterone-integration-operator-controller-manager` |
 | `controllerManager.serviceAccount.annotations` | Annotations on the operator ServiceAccount. Set the IRSA role here when the operator reads credentials from AWS Secrets Manager. | `{}` |
-| `controllerManager.imageRegistry` | Registry that replaces `ghcr.io` for integration job images (`<registry>/jupiterone/graph-<name>:latest`). Hostname only. | `""` |
-| `controllerManager.disableImageSignatureCheck` | Skip cosign signature verification of integration job images. | `false` |
-| `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. | `[]` |
+| `controllerManager.imageRegistry` | Registry host plus optional path prefix, without a scheme, that replaces `ghcr.io` for integration job images (`<imageRegistry>/jupiterone/graph-<name>:latest`) and their signatures. See [Private registry mirror](#private-registry-mirror). | `""` |
+| `controllerManager.disableImageSignatureCheck` | Skip cosign signature verification of integration job images. Not needed with a mirror that serves the `-signatures` repositories. | `false` |
+| `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. The operator also uses them to verify signatures against `imageRegistry`; a private mirror needs one. | `[]` |
 | `controllerManager.jobResources` | Requests and limits applied to integration job containers. | `{}` |
 | `controllerManager.job` | Labels, annotations, scheduling and security context for every integration run. See [Job labels, annotations and scheduling](#job-labels-annotations-and-scheduling). | `{}` |
 | `rbac.enable` | Create the operator ServiceAccount, Roles and bindings. | `true` |
@@ -187,27 +197,222 @@ ServiceMonitor scrapes it over TLS, and the NetworkPolicy admits scrapes only
 from namespaces labeled `metrics: enabled`. Without `certmanager.enable` the
 ServiceMonitor uses `insecureSkipVerify: true`.
 
-### Private Registry Example
+### Private registry mirror
 
-Create a custom values file (e.g., `custom-values.yaml`) with the private registry configuration:
+Run the operator against a registry you control that mirrors AWS Public ECR
+(`public.ecr.aws`). Three mirrors are covered below:
 
-```yaml
-controllerManager:
-  imageRegistry: "myregistry.example.com"
-  imagePullSecrets:
-    - name: my-registry-secret
-  disableImageSignatureCheck: true  # Set to true if your registry doesn't mirror ghcr.io cosign signatures
-```
+1. [AWS ECR pull-through cache](#aws-ecr-pull-through-cache) (recommended on
+   AWS). AWS fetches from Public ECR itself, so the cluster network needs no
+   CloudFront egress.
+2. [Harbor proxy cache](#harbor-proxy-cache).
+3. [Artifactory remote Docker repository](#artifactory-remote-docker-repository)
+   (JFrog Container Registry or Artifactory Pro).
 
-Then install (or upgrade) using the values file:
+How the operator uses the mirror:
 
-```console
-helm install integration-operator jupiterone/jupiterone-integration-operator \
-  --namespace jupiterone \
-  -f custom-values.yaml
-```
+- `controllerManager.imageRegistry` is the registry host plus an optional path
+  prefix, without a scheme, for example
+  `<account>.dkr.ecr.<region>.amazonaws.com/<prefix>` or
+  `<harbor-host>/<project>`. Integration jobs run
+  `<imageRegistry>/jupiterone/graph-<name>:latest`.
+- Before a job starts, the operator verifies the image's cosign signature. It
+  reads the signature from the `-signatures` repository next to the image,
+  `<imageRegistry>/jupiterone/graph-<name>-signatures` (tags
+  `sha256-<digest>.sig`). Pull-through and proxy caches fetch these
+  repositories on demand, with no extra configuration. If you copy images
+  instead of caching them, copy the `-signatures` repositories too.
+- Signature verification authenticates to the mirror only with
+  `controllerManager.imagePullSecrets`. It does not use node credentials, an IAM
+  role on the operator ServiceAccount, or the ServiceAccount's own
+  `imagePullSecrets`. Without a pull secret, a private
+  mirror returns `401 Unauthorized` and the operator falls back to verifying
+  against `ghcr.io`, which fails when the cluster cannot reach GitHub. The log
+  line `Image verification failed against custom registry, falling back to
+  ghcr.io` means the mirror setup is incomplete.
+- Keep `controllerManager.disableImageSignatureCheck: false`.
+- Outbound from the cluster, the operator needs the mirror and
+  `tuf-repo-cdn.sigstore.dev:443`, where cosign fetches the sigstore trusted
+  root on each verification. Nothing else is needed for images or
+  verification. The runner still needs the JupiterOne API.
 
-> **Note:** `disableImageSignatureCheck` is independent of `imageRegistry`. Cosign verification may work through registry proxies since it resolves signatures against the original source. Only disable it if verification fails in your environment.
+#### AWS ECR pull-through cache
+
+1. Create a pull-through cache rule in the cluster's region. No upstream
+   credentials are needed:
+
+   ```console
+   aws ecr create-pull-through-cache-rule \
+     --ecr-repository-prefix jupiterone-public \
+     --upstream-registry-url public.ecr.aws \
+     --upstream-registry ecr-public
+   ```
+
+2. Grant the node role, in addition to its usual ECR read-only policy, the
+   actions that create and import cached repositories. Without them the first
+   pull of an image, or of a new `.sig` tag, fails with `NotFound` or
+   `NAME_UNKNOWN`:
+
+   ```json
+   {
+     "Effect": "Allow",
+     "Action": ["ecr:CreateRepository", "ecr:BatchImportUpstreamImage"],
+     "Resource": "arn:aws:ecr:<region>:<account>:repository/jupiterone-public/*"
+   }
+   ```
+
+3. Give the identity that mints the pull secret the same two actions plus
+   `ecr:GetAuthorizationToken` (on `*`), `ecr:BatchGetImage`,
+   `ecr:BatchCheckLayerAvailability` and `ecr:GetDownloadUrlForLayer`.
+4. Reach ECR privately with VPC interface endpoints
+   `com.amazonaws.<region>.ecr.api` and `com.amazonaws.<region>.ecr.dkr`
+   (private DNS on) and an S3 gateway endpoint, which serves the image layers.
+5. Keep a `kubernetes.io/dockerconfigjson` pull secret in the operator
+   namespace. ECR tokens expire after 12 hours, so refresh it on a schedule,
+   for example with the External Secrets Operator `ECRAuthorizationToken`
+   generator. Here `ecr-token-minter` is a ServiceAccount whose IAM role has
+   the permissions from step 3:
+
+   ```yaml
+   apiVersion: generators.external-secrets.io/v1alpha1
+   kind: ECRAuthorizationToken
+   metadata:
+     name: ecr-token
+     namespace: jupiterone
+   spec:
+     region: <region>
+     auth:
+       jwt:
+         serviceAccountRef:
+           name: ecr-token-minter
+   ---
+   apiVersion: external-secrets.io/v1
+   kind: ExternalSecret
+   metadata:
+     name: ecr-pull
+     namespace: jupiterone
+   spec:
+     refreshInterval: 6h
+     target:
+       name: ecr-pull
+       template:
+         type: kubernetes.io/dockerconfigjson
+         data:
+           .dockerconfigjson: '{"auths":{"{{ .proxy_endpoint }}":{"username":"{{ .username }}","password":"{{ .password }}"}}}'
+     dataFrom:
+       - sourceRef:
+           generatorRef:
+             apiVersion: generators.external-secrets.io/v1alpha1
+             kind: ECRAuthorizationToken
+             name: ecr-token
+   ```
+
+6. Install with these values:
+
+   ```yaml
+   controllerManager:
+     container:
+       image:
+         repository: <account>.dkr.ecr.<region>.amazonaws.com/jupiterone-public/jupiterone/jupiterone-integration-operator
+     imageRegistry: <account>.dkr.ecr.<region>.amazonaws.com/jupiterone-public
+     imagePullSecrets:
+       - name: ecr-pull
+   ```
+
+Notes:
+
+- The cache checks Public ECR for a newer tag at most once every 24 hours, so a
+  new `latest` integration image can take up to a day to arrive.
+- A repository creation template that matches the prefix and sets
+  `resourceTags` without a `customRoleArn` stops the cache from creating
+  repositories (`repository ... does not exist`). Add a custom role to the
+  template or leave it out.
+
+#### Harbor proxy cache
+
+1. Under Registries, create an endpoint with provider `Docker Registry`, URL
+   `https://public.ecr.aws`, no credentials. (The `AWS ECR` provider is for
+   private ECR.)
+2. Create a project, for example `ecr-public`, with Proxy Cache enabled on that
+   endpoint.
+3. If the project is private, create a robot account with pull access to it and
+   store it as a pull secret:
+
+   ```console
+   kubectl -n jupiterone create secret docker-registry harbor-pull \
+     --docker-server=<harbor-host> \
+     --docker-username='robot$ecr-public+<name>' \
+     --docker-password=<secret>
+   ```
+
+4. Install with these values:
+
+   ```yaml
+   controllerManager:
+     container:
+       image:
+         repository: <harbor-host>/ecr-public/jupiterone/jupiterone-integration-operator
+     imageRegistry: <harbor-host>/ecr-public
+     imagePullSecrets:        # omit only for a public project
+       - name: harbor-pull
+   ```
+
+Harbor's TLS certificate must chain to a public CA. The nodes and the operator
+use the system trust store, and the operator image has no way to add a private
+CA.
+
+#### Artifactory remote Docker repository
+
+Works with JFrog Container Registry (JCR) and Artifactory Pro.
+
+1. Create a remote repository, package type Docker, for example `ecr-public`:
+   URL `https://public.ecr.aws`, no upstream credentials, Docker API V2,
+   Enable Token Authentication on. A metadata retrieval cache period of about
+   600 seconds keeps `latest` fresh. With the default Repository Path access
+   method, images are addressed as
+   `<artifactory-host>/ecr-public/jupiterone/<image>:<tag>`.
+2. Create a dedicated pull user, for example `jupiterone-puller` (in the UI on
+   JCR, or through the REST API on Pro), and a permission target on
+   `ecr-public` granting Read, Annotate and Deploy/Cache. Read alone is not
+   enough: Artifactory rejects a pull that misses the cache unless the user can
+   cache the artifact, and `latest` changes, so cache misses recur. Do not use
+   an admin token. Store the user's token as a pull secret:
+
+   ```console
+   kubectl -n jupiterone create secret docker-registry artifactory-pull \
+     --docker-server=<artifactory-host> \
+     --docker-username=jupiterone-puller \
+     --docker-password=<token>
+   ```
+
+3. Install with these values:
+
+   ```yaml
+   controllerManager:
+     container:
+       image:
+         repository: <artifactory-host>/ecr-public/jupiterone/jupiterone-integration-operator
+     imageRegistry: <artifactory-host>/ecr-public
+     imagePullSecrets:
+       - name: artifactory-pull
+   ```
+
+As with Harbor, the TLS certificate must chain to a public CA.
+
+#### Mirror egress for Harbor and Artifactory
+
+A Harbor or Artifactory mirror fetches from Public ECR itself, so the mirror
+host, not the cluster, needs egress to `public.ecr.aws:443` and to the
+CloudFront host that `public.ecr.aws` redirects image layer downloads to. AWS
+does not document that hostname and can change it, so confirm it from the
+mirror's own logs and monitor it rather than allowlisting a fixed name.
+
+On AWS you can avoid that egress by chaining the mirror to an
+[ECR pull-through cache](#aws-ecr-pull-through-cache): point the Harbor
+endpoint (provider `AWS ECR`) or the Artifactory remote at
+`https://<account>.dkr.ecr.<region>.amazonaws.com`, with credentials that have
+the permissions in step 3 of that section, and add the cache prefix to `imageRegistry` (for example
+`<harbor-host>/<project>/jupiterone-public`).
 
 ### AWS Access for Integration Job Pods (IRSA)
 
@@ -430,6 +635,17 @@ kubectl delete namespace jupiterone
 - **Pod not starting:** Check logs with `kubectl logs <pod-name>`.
 - **CRDs not found:** Ensure the operator pod is running and healthy.
 - **Authentication errors:** Double-check your `collectorID`, `accountID`, and `authToken`.
+- **`Image verification failed against custom registry, falling back to ghcr.io`:**
+  the operator could not verify against `imageRegistry`. A `401 Unauthorized`
+  means `controllerManager.imagePullSecrets` is missing or the token expired. See
+  [Private registry mirror](#private-registry-mirror).
+- **`failed to get trusted root`:** allow egress to `tuf-repo-cdn.sigstore.dev:443`.
+- **`authorization token has expired` from cosign when testing by hand:** a
+  stale `public.ecr.aws` entry in `~/.docker/config.json` stops cosign from
+  pulling anonymously. Run `docker logout public.ecr.aws` and retry.
+- **Job pod `ErrImagePull` with `NotFound` from an ECR pull-through cache:** the
+  node role lacks `ecr:CreateRepository` or `ecr:BatchImportUpstreamImage` on the
+  cache prefix.
 
 ## Support
 

@@ -94,16 +94,23 @@ controllerManager:
   #       eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<role-name>
   serviceAccount:
     annotations: {}
-  # Image registry override for private registry environments.
-  # When set, integration job images are pulled from this registry instead of ghcr.io.
-  # Example: "myregistry.example.com" produces images like "myregistry.example.com/jupiterone/graph-aws:latest"
+  # Image registry override for private registry mirrors of public.ecr.aws.
+  # Registry host plus optional path prefix, without a scheme. Integration job
+  # images come from <imageRegistry>/jupiterone/graph-<name>:latest and their
+  # signatures from <imageRegistry>/jupiterone/graph-<name>-signatures.
+  # Examples:
+  #   <account>.dkr.ecr.<region>.amazonaws.com/<prefix>  (ECR pull-through cache)
+  #   <harbor-host>/<project>                            (Harbor proxy cache)
+  # A private mirror also needs imagePullSecrets. See "Private registry mirror"
+  # in the README.
   imageRegistry: ""
   # Disable cosign image signature verification for integration job images.
-  # Set to true when using private registries that don't mirror ghcr.io cosign signatures.
-  # When false or unset, cosign verification runs as normal against ghcr.io signatures.
+  # Only for registries that do not serve the graph-<name>-signatures
+  # repositories; pull-through and proxy caches of public.ecr.aws do.
   disableImageSignatureCheck: false
   # Secrets for pulling images from private registries.
   # Applied to both the operator Deployment pod and propagated to spawned integration job pods.
+  # The operator also uses them to verify signatures against imageRegistry.
   # Example:
   #   imagePullSecrets:
   #     - name: my-registry-secret
