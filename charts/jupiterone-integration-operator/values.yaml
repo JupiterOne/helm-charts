@@ -101,8 +101,9 @@ controllerManager:
   # Examples:
   #   <account>.dkr.ecr.<region>.amazonaws.com/<prefix>  (ECR pull-through cache)
   #   <harbor-host>/<project>                            (Harbor proxy cache)
-  # A private mirror also needs imagePullSecrets. See "Private registry mirror"
-  # in the README.
+  # A private mirror also needs imagePullSecrets or, for ECR with operator
+  # v0.9.0+, an IAM role on the operator ServiceAccount. See "Private registry
+  # mirror" in the README.
   imageRegistry: ""
   # Disable cosign image signature verification for integration job images.
   # Only for registries that do not serve the graph-<name>-signatures
@@ -115,6 +116,20 @@ controllerManager:
   #   imagePullSecrets:
   #     - name: my-registry-secret
   imagePullSecrets: []
+  # Extra volumes on the manager pod and mounts on the manager container, for
+  # example a ConfigMap holding a Sigstore trusted_root.json or TUF root.json
+  # referenced by IMAGE_VERIFY_TRUSTED_ROOT_FILE or IMAGE_VERIFY_TUF_ROOT_FILE.
+  # Example:
+  #   extraVolumes:
+  #     - name: sigstore
+  #       configMap:
+  #         name: sigstore-trusted-root
+  #   extraVolumeMounts:
+  #     - name: sigstore
+  #       mountPath: /etc/sigstore
+  #       readOnly: true
+  extraVolumes: []
+  extraVolumeMounts: []
   # Resource requests and limits applied to integration job containers.
   # Configure these to comply with cluster resource policies (e.g. Kyverno, OPA/Gatekeeper).
   # When empty, no resource requirements are set on job containers.

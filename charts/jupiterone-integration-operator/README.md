@@ -112,7 +112,8 @@ Refer to the [values.yaml](./values.yaml) for all available configuration option
 | `controllerManager.serviceAccount.annotations` | Annotations on the operator ServiceAccount. Set the IRSA role here when the operator reads credentials from AWS Secrets Manager. | `{}` |
 | `controllerManager.imageRegistry` | Registry host plus optional path prefix, without a scheme, that replaces `ghcr.io` for integration job images (`<imageRegistry>/jupiterone/graph-<name>:latest`) and their signatures. See [Private registry mirror](#private-registry-mirror). | `""` |
 | `controllerManager.disableImageSignatureCheck` | Skip cosign signature verification of integration job images. Not needed with a mirror that serves the `-signatures` repositories. | `false` |
-| `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. The operator also uses them to verify signatures against `imageRegistry`; a private mirror needs one. | `[]` |
+| `controllerManager.imagePullSecrets` | `imagePullSecrets` for the manager pod and every integration job pod. The operator also uses them to verify signatures against `imageRegistry`; a private mirror other than ECR with an operator IAM role needs one. | `[]` |
+| `controllerManager.extraVolumes` / `.extraVolumeMounts` | Extra volumes on the manager pod and mounts on the manager container, for example a Sigstore trusted root. See [Signature verification without sigstore egress](#signature-verification-without-sigstore-egress). | `[]` |
 | `controllerManager.jobResources` | Requests and limits applied to integration job containers. | `{}` |
 | `controllerManager.job` | Labels, annotations, scheduling and security context for every integration run. See [Job labels, annotations and scheduling](#job-labels-annotations-and-scheduling). | `{}` |
 | `rbac.enable` | Create the operator ServiceAccount, Roles and bindings. | `true` |
@@ -140,6 +141,7 @@ through `controllerManager.container.env`:
 | `AWS_REGION` | Region for the AWS SDK default chain when a CR omits `region`. | unset |
 | `LOG_LEVEL` | `debug`, `info`, `warn` or `error`. | `info` |
 | `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` | Proxy settings; also injected into integration job pods. | unset |
+| `DISABLE_GHCR_FALLBACK`, `IMAGE_VERIFY_*` | Signature verification settings (operator v0.9.0 or later). See [Private registry mirror](#private-registry-mirror). | unset |
 
 ### ServiceAccount annotations (IRSA)
 
@@ -222,19 +224,38 @@ How the operator uses the mirror:
   `sha256-<digest>.sig`). Pull-through and proxy caches fetch these
   repositories on demand, with no extra configuration. If you copy images
   instead of caching them, copy the `-signatures` repositories too.
-- Signature verification authenticates to the mirror only with
-  `controllerManager.imagePullSecrets`. It does not use node credentials, an IAM
-  role on the operator ServiceAccount, or the ServiceAccount's own
-  `imagePullSecrets`. Without a pull secret, a private
-  mirror returns `401 Unauthorized` and the operator falls back to verifying
-  against `ghcr.io`, which fails when the cluster cannot reach GitHub. The log
-  line `Image verification failed against custom registry, falling back to
-  ghcr.io` means the mirror setup is incomplete.
+- Signature verification authenticates to the mirror with, in order:
+  `controllerManager.imagePullSecrets`, the `imagePullSecrets` of the
+  integration job ServiceAccount, and, for private ECR hosts
+  (`<account>.dkr.ecr.<region>.amazonaws.com`), the operator's own AWS
+  identity (IRSA or EKS Pod Identity on the operator ServiceAccount). Anything
+  else is anonymous. Node credentials are never used for verification. ECR
+  identity and the job ServiceAccount's secrets require operator v0.9.0 or
+  later; older operators use only `controllerManager.imagePullSecrets`.
+- If verification against the mirror fails, the operator retries against
+  `ghcr.io` unless `DISABLE_GHCR_FALLBACK` is `"true"`. Set it when the cluster
+  cannot reach GitHub, so a broken mirror setup fails clearly instead of after
+  a second, misleading error. With the fallback on, the log line `Image
+  verification failed against custom registry, falling back to ghcr.io` (and,
+  from v0.9.0, the warning `Image verified only through the ghcr.io fallback`)
+  means the mirror setup is incomplete.
 - Keep `controllerManager.disableImageSignatureCheck: false`.
 - Outbound from the cluster, the operator needs the mirror and
   `tuf-repo-cdn.sigstore.dev:443`, where cosign fetches the sigstore trusted
-  root on each verification. Nothing else is needed for images or
-  verification. The runner still needs the JupiterOne API.
+  root on each verification. From v0.9.0 you can remove that egress; see
+  [Signature verification without sigstore egress](#signature-verification-without-sigstore-egress).
+  Nothing else is needed for images or verification. The runner still needs
+  the JupiterOne API.
+
+Settings for verification (operator v0.9.0 or later) have no dedicated chart
+values; set them through `controllerManager.container.env`:
+
+| Variable | Description | Default |
+|---|---|---|
+| `DISABLE_GHCR_FALLBACK` | `"true"` stops the retry against `ghcr.io` when verification against `imageRegistry` fails; the job stays unverified and is retried with backoff. Recommended without GitHub access. | unset (fallback on) |
+| `IMAGE_VERIFY_TRUSTED_ROOT_FILE` | Path to a mounted Sigstore `trusted_root.json`. No TUF traffic at all. Cannot be combined with the two TUF variables. The operator fails at startup if the file is invalid. | unset |
+| `IMAGE_VERIFY_TUF_MIRROR` | `http(s)` base URL of a TUF repository that replaces `https://tuf-repo-cdn.sigstore.dev`. | unset |
+| `IMAGE_VERIFY_TUF_ROOT_FILE` | Path to a mounted TUF `root.json` for that mirror. Requires `IMAGE_VERIFY_TUF_MIRROR`. Unset uses the embedded public Sigstore root, which is right for a straight mirror of `tuf-repo-cdn.sigstore.dev`. | unset |
 
 #### AWS ECR pull-through cache
 
@@ -261,63 +282,93 @@ How the operator uses the mirror:
    }
    ```
 
-3. Give the identity that mints the pull secret the same two actions plus
-   `ecr:GetAuthorizationToken` (on `*`), `ecr:BatchGetImage`,
-   `ecr:BatchCheckLayerAvailability` and `ecr:GetDownloadUrlForLayer`.
+3. Give the operator an AWS identity for signature verification (operator
+   v0.9.0 or later). Attach an IAM role to the operator ServiceAccount with
+   IRSA (`controllerManager.serviceAccount.annotations`) or an EKS Pod Identity
+   association on `jupiterone-integration-operator-controller-manager`. The
+   role needs:
+
+   ```json
+   [
+     {"Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*"},
+     {
+       "Effect": "Allow",
+       "Action": [
+         "ecr:BatchGetImage",
+         "ecr:GetDownloadUrlForLayer",
+         "ecr:BatchCheckLayerAvailability",
+         "ecr:BatchImportUpstreamImage",
+         "ecr:CreateRepository"
+       ],
+       "Resource": "arn:aws:ecr:<region>:<account>:repository/jupiterone-public/*"
+     }
+   ]
+   ```
+
+   The operator fetches ECR tokens itself, so no pull secret or 12-hour token
+   refresh is needed. If the role is also used for AWS Secrets Manager, add
+   these statements to it.
 4. Reach ECR privately with VPC interface endpoints
    `com.amazonaws.<region>.ecr.api` and `com.amazonaws.<region>.ecr.dkr`
    (private DNS on) and an S3 gateway endpoint, which serves the image layers.
-5. Keep a `kubernetes.io/dockerconfigjson` pull secret in the operator
-   namespace. ECR tokens expire after 12 hours, so refresh it on a schedule,
-   for example with the External Secrets Operator `ECRAuthorizationToken`
-   generator. Here `ecr-token-minter` is a ServiceAccount whose IAM role has
-   the permissions from step 3:
-
-   ```yaml
-   apiVersion: generators.external-secrets.io/v1alpha1
-   kind: ECRAuthorizationToken
-   metadata:
-     name: ecr-token
-     namespace: jupiterone
-   spec:
-     region: <region>
-     auth:
-       jwt:
-         serviceAccountRef:
-           name: ecr-token-minter
-   ---
-   apiVersion: external-secrets.io/v1
-   kind: ExternalSecret
-   metadata:
-     name: ecr-pull
-     namespace: jupiterone
-   spec:
-     refreshInterval: 6h
-     target:
-       name: ecr-pull
-       template:
-         type: kubernetes.io/dockerconfigjson
-         data:
-           .dockerconfigjson: '{"auths":{"{{ .proxy_endpoint }}":{"username":"{{ .username }}","password":"{{ .password }}"}}}'
-     dataFrom:
-       - sourceRef:
-           generatorRef:
-             apiVersion: generators.external-secrets.io/v1alpha1
-             kind: ECRAuthorizationToken
-             name: ecr-token
-   ```
-
-6. Install with these values:
+   With IRSA the operator also calls STS, so add a
+   `com.amazonaws.<region>.sts` endpoint or allow the regional STS host.
+5. Install with these values:
 
    ```yaml
    controllerManager:
      container:
        image:
          repository: <account>.dkr.ecr.<region>.amazonaws.com/jupiterone-public/jupiterone/jupiterone-integration-operator
+       env:
+         DISABLE_GHCR_FALLBACK: "true"
      imageRegistry: <account>.dkr.ecr.<region>.amazonaws.com/jupiterone-public
-     imagePullSecrets:
-       - name: ecr-pull
+     serviceAccount:
+       annotations:
+         eks.amazonaws.com/role-arn: arn:aws:iam::<account>:role/jupiterone-integration-operator
    ```
+
+Operators older than v0.9.0 cannot use the IAM role for verification. They
+need a `kubernetes.io/dockerconfigjson` pull secret in
+`controllerManager.imagePullSecrets`, minted by an identity with the
+permissions above and refreshed before the ECR token expires after 12 hours,
+for example with the External Secrets Operator `ECRAuthorizationToken`
+generator (`ecr-token-minter` is a ServiceAccount whose IAM role has those
+permissions):
+
+```yaml
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: ECRAuthorizationToken
+metadata:
+  name: ecr-token
+  namespace: jupiterone
+spec:
+  region: <region>
+  auth:
+    jwt:
+      serviceAccountRef:
+        name: ecr-token-minter
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: ecr-pull
+  namespace: jupiterone
+spec:
+  refreshInterval: 6h
+  target:
+    name: ecr-pull
+    template:
+      type: kubernetes.io/dockerconfigjson
+      data:
+        .dockerconfigjson: '{"auths":{"{{ .proxy_endpoint }}":{"username":"{{ .username }}","password":"{{ .password }}"}}}'
+  dataFrom:
+    - sourceRef:
+        generatorRef:
+          apiVersion: generators.external-secrets.io/v1alpha1
+          kind: ECRAuthorizationToken
+          name: ecr-token
+```
 
 Notes:
 
@@ -352,6 +403,8 @@ Notes:
      container:
        image:
          repository: <harbor-host>/ecr-public/jupiterone/jupiterone-integration-operator
+       env:
+         DISABLE_GHCR_FALLBACK: "true"   # operator v0.9.0 or later
      imageRegistry: <harbor-host>/ecr-public
      imagePullSecrets:        # omit only for a public project
        - name: harbor-pull
@@ -392,6 +445,8 @@ Works with JFrog Container Registry (JCR) and Artifactory Pro.
      container:
        image:
          repository: <artifactory-host>/ecr-public/jupiterone/jupiterone-integration-operator
+       env:
+         DISABLE_GHCR_FALLBACK: "true"   # operator v0.9.0 or later
      imageRegistry: <artifactory-host>/ecr-public
      imagePullSecrets:
        - name: artifactory-pull
@@ -413,6 +468,44 @@ endpoint (provider `AWS ECR`) or the Artifactory remote at
 `https://<account>.dkr.ecr.<region>.amazonaws.com`, with credentials that have
 the permissions in step 3 of that section, and add the cache prefix to `imageRegistry` (for example
 `<harbor-host>/<project>/jupiterone-public`).
+
+#### Signature verification without sigstore egress
+
+From operator v0.9.0, verification can run without reaching
+`tuf-repo-cdn.sigstore.dev`. Pick one:
+
+- **Mounted trusted root.** Put a Sigstore `trusted_root.json` in a ConfigMap,
+  mount it with `controllerManager.extraVolumes` and `extraVolumeMounts`, and
+  point `IMAGE_VERIFY_TRUSTED_ROOT_FILE` at it. The operator makes no TUF
+  requests. Sigstore rotates keys occasionally, so refresh the file when it
+  does.
+- **TUF mirror.** Set `IMAGE_VERIFY_TUF_MIRROR` to a mirror of
+  `tuf-repo-cdn.sigstore.dev` you host. For a mirror with its own root, also
+  mount its `root.json` and set `IMAGE_VERIFY_TUF_ROOT_FILE`.
+
+```console
+kubectl -n jupiterone create configmap sigstore-trusted-root \
+  --from-file=trusted_root.json
+```
+
+```yaml
+controllerManager:
+  container:
+    env:
+      DISABLE_GHCR_FALLBACK: "true"
+      IMAGE_VERIFY_TRUSTED_ROOT_FILE: /etc/sigstore/trusted_root.json
+  extraVolumes:
+    - name: sigstore
+      configMap:
+        name: sigstore-trusted-root
+  extraVolumeMounts:
+    - name: sigstore
+      mountPath: /etc/sigstore
+      readOnly: true
+```
+
+At startup the operator logs `Image verification trusted root` with the
+settings it uses.
 
 ### AWS Access for Integration Job Pods (IRSA)
 
@@ -637,7 +730,9 @@ kubectl delete namespace jupiterone
 - **Authentication errors:** Double-check your `collectorID`, `accountID`, and `authToken`.
 - **`Image verification failed against custom registry, falling back to ghcr.io`:**
   the operator could not verify against `imageRegistry`. A `401 Unauthorized`
-  means `controllerManager.imagePullSecrets` is missing or the token expired. See
+  means the operator has no credentials for the mirror: a missing or expired
+  pull secret, or, for ECR on v0.9.0 or later, an operator IAM role without the
+  ECR permissions (look for the `ECR credential helper` warning). See
   [Private registry mirror](#private-registry-mirror).
 - **`failed to get trusted root`:** allow egress to `tuf-repo-cdn.sigstore.dev:443`.
 - **`authorization token has expired` from cosign when testing by hand:** a
