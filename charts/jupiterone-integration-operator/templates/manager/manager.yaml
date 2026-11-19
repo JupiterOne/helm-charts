@@ -42,6 +42,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            - name: OPERATOR_VERSION
+              value: {{ .Values.controllerManager.container.image.tag | default .Chart.AppVersion | quote }}
             - name: K8S_INTEGRATION_SERVICE_ACCOUNT
               value: {{ .Values.integration.serviceAccountName }}
             {{- with (include "chart.integrationJobServiceAccountName" .) }}
