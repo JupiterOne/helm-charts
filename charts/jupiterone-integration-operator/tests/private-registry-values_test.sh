@@ -72,6 +72,16 @@ test_default_values() {
     "WATCH_NAMESPACE" "$output"
 }
 
+test_operator_version() {
+  local app_version
+  app_version=$(sed -n -E 's/^appVersion:[[:space:]]*"?([^"]+)"?[[:space:]]*$/\1/p' "$CHART_DIR/Chart.yaml")
+  assert_contains "OPERATOR_VERSION defaults to the chart appVersion" \
+    "value: \"$app_version\"" "$(helm template test-release "$CHART_DIR" | grep -A1 'name: OPERATOR_VERSION')"
+  assert_contains "OPERATOR_VERSION follows an image tag override" \
+    'value: "v9.9.9"' "$(helm template test-release "$CHART_DIR" \
+      --set controllerManager.container.image.tag=v9.9.9 | grep -A1 'name: OPERATOR_VERSION')"
+}
+
 test_image_registry() {
   local output
   output=$(helm template test-release "$CHART_DIR" \
@@ -143,6 +153,7 @@ test_signature_check_false() {
 # --- Run all tests ---
 
 run_test "Default values (backwards compatibility)" test_default_values
+run_test "Operator version" test_operator_version
 run_test "imageRegistry set" test_image_registry
 run_test "imagePullSecrets set" test_image_pull_secrets
 run_test "Both values set" test_both_values
