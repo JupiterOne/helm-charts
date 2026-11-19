@@ -65,8 +65,9 @@ spec:
               config:
                 additionalProperties:
                   type: string
-                description: Config to pass to the create integration API (non-sensitive
-                  configuration)
+                description: |-
+                  Config is the instance configuration (non-sensitive). Changes are sent to an
+                  existing instance in MERGE mode: keys removed here are kept in JupiterOne.
                 type: object
               ingestionSources:
                 additionalProperties:
@@ -76,8 +77,7 @@ spec:
                   Unlisted sources use the integration definition's default. When set, this map
                   owns the instance's whole override list: overrides made elsewhere (UI, API) are
                   replaced on the next change to this field. Leave unset to manage ingestion
-                  sources outside Kubernetes. Unlike other fields, changes are applied to an
-                  existing instance.
+                  sources outside Kubernetes. Changes are applied to an existing instance.
                 type: object
               integrationDefinitionName:
                 description: IntegrationDefinitionName is the name of the integration
@@ -199,6 +199,12 @@ spec:
                 description: AppliedIngestionSources is the IngestionSources value
                   last sent to JupiterOne.
                 type: object
+              appliedStateHash:
+                description: |-
+                  AppliedStateHash is a keyed hash of the config, polling, resource group and
+                  collector pool last sent to JupiterOne. Empty on instances created before
+                  the operator tracked it.
+                type: string
               conditions:
                 description: |-
                   INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
