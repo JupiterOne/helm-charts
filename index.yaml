@@ -1103,6 +1103,16 @@ entries:
     version: 1.0.2
   jupiterone-integration-operator:
   - apiVersion: v2
+    appVersion: v0.10.2
+    created: "2026-11-24T18:34:37.403442327Z"
+    description: JupiterOne Integration Operator for running integrations in Kubernetes
+    digest: 930b55d7de5567f2743f1e03d359e58a75833f355ec99cfd53ee5576beab2bdf
+    name: jupiterone-integration-operator
+    type: application
+    urls:
+    - https://github.com/JupiterOne/helm-charts/releases/download/jupiterone-integration-operator-1.11.0/jupiterone-integration-operator-1.11.0.tgz
+    version: 1.11.0
+  - apiVersion: v2
     appVersion: v0.10.1
     created: "2026-11-19T15:16:22.105106199Z"
     description: JupiterOne Integration Operator for running integrations in Kubernetes
@@ -2207,4 +2217,4 @@ entries:
     urls:
     - https://github.com/JupiterOne/helm-charts/releases/download/wazuh-1.0.1/wazuh-1.0.1.tgz
     version: 1.0.1
-generated: "2026-11-19T15:16:22.105651279Z"
+generated: "2026-11-24T18:34:37.403829763Z"
