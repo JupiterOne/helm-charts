@@ -182,6 +182,40 @@ rules:
     verbs:
       - get
       - list
+  # Listed cluster-wide by the kubernetes-managed built-in CRD packages; list
+  # is all they need.
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - gatewayclasses
+      - httproutes
+      - grpcroutes
+      - tlsroutes
+      - tcproutes
+    verbs:
+      - list
+  - apiGroups:
+      - gateway.envoyproxy.io
+    resources:
+      - envoyproxies
+      - securitypolicies
+      - backends
+      - clienttrafficpolicies
+    verbs:
+      - list
+  - apiGroups:
+      - elbv2.k8s.aws
+    resources:
+      - targetgroupbindings
+    verbs:
+      - list
+  - apiGroups:
+      - configuration.konghq.com
+    resources:
+      - kongplugins
+      - kongclusterplugins
+    verbs:
+      - list
   - apiGroups:
       - external-secrets.io
     resources:
