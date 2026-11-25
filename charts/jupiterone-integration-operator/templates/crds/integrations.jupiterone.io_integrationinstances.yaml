@@ -69,6 +69,23 @@ spec:
                   Config is the instance configuration (non-sensitive). Changes are sent to an
                   existing instance in MERGE mode: keys removed here are kept in JupiterOne.
                 type: object
+              imageDigest:
+                description: |-
+                  ImageDigest pins this instance's runs to one exact image, for example
+                  sha256:8baed13a... (64 hex characters). The run uses
+                  graph-<integration>@<digest>, so a registry or cluster cache cannot serve
+                  other content for it. Set imageTag or imageDigest, not both. A change
+                  applies to the next run; it is not sent to JupiterOne.
+                pattern: ^sha256:[a-f0-9]{64}$
+                type: string
+              imageTag:
+                description: |-
+                  ImageTag is the image tag this instance's runs use, for example 0.1.68.
+                  Unset, empty or "latest" means latest. A change applies to the next run;
+                  it is not sent to JupiterOne.
+                maxLength: 128
+                pattern: ^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$
+                type: string
               ingestionSources:
                 additionalProperties:
                   type: boolean
@@ -190,6 +207,10 @@ spec:
                 - message: kubernetes must be set when provider is kubernetes
                   rule: self.provider != 'kubernetes' || has(self.kubernetes)
             type: object
+            x-kubernetes-validations:
+            - message: set imageTag or imageDigest, not both
+              rule: '!has(self.imageDigest) || size(self.imageDigest) == 0 || !has(self.imageTag)
+                || size(self.imageTag) == 0 || self.imageTag == ''latest'''
           status:
             description: IntegrationInstanceStatus defines the observed state of IntegrationInstance.
             properties:

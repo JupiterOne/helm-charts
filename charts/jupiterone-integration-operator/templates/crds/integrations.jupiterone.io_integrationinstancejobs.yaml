@@ -30,6 +30,10 @@ spec:
       jsonPath: .status.jobCreated
       name: JobCreated
       type: string
+    - description: Image digest the integration container ran
+      jsonPath: .status.imageID
+      name: ImageID
+      type: string
     - description: Age of the resource
       jsonPath: .metadata.creationTimestamp
       name: Age
@@ -94,6 +98,12 @@ spec:
                   CompletionTime is the time when the underlying Kubernetes Job completed (succeeded or failed).
                   Used to determine when TTL cleanup should occur.
                 format: date-time
+                type: string
+              imageID:
+                description: |-
+                  ImageID is the image digest the integration container ran, as reported by the container runtime
+                  when the Job finished. Empty when the runtime did not report one (for example the image could not
+                  be pulled); it is never a placeholder.
                 type: string
               imageVerified:
                 description: |-
